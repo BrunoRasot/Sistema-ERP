@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "Vivelite Quality Gate: Ejecutando verificación pre-push..."
+
+echo "1/2: Ejecutando Pruebas Backend (Jest + Integración + Concurrencia)..."
+pnpm --dir backend test:all
+if [ $? -ne 0 ]; then
+  echo "Fallaron las pruebas del backend. Push abortado."
+  exit 1
+fi
+
+echo "2/2: Ejecutando Pruebas Frontend (Vitest + Responsive)..."
+pnpm --dir frontend test
+if [ $? -ne 0 ]; then
+  echo "Fallaron las pruebas del frontend. Push abortado."
+  exit 1
+fi
+
+echo "Todas las suites de prueba aprobaron satisfactoriamente. Procediendo con push."
+exit 0
+ 

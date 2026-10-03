@@ -1,0 +1,21 @@
+{
+  "name": "Vivelite — Distribuidora de Agua",
+  "short_name": "Vivelite",
+  "description": "Sistema de Gestión Integral para Distribuidora de Agua de Mesa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

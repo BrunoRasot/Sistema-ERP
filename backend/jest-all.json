@@ -1,0 +1,25 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "roots": ["<rootDir>", "<rootDir>/../tests"],
+  "moduleDirectories": ["node_modules", "<rootDir>/node_modules"],
+  "testEnvironment": "node",
+  "testTimeout": 30000,
+  "testMatch": [
+    "<rootDir>/../tests/unit/**/*.test.ts",
+    "<rootDir>/../tests/integration/**/*.test.ts",
+    "<rootDir>/../tests/e2e/**/*.test.ts",
+    "<rootDir>/src/**/*.spec.ts"
+  ],
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      {
+        "tsconfig": "<rootDir>/tsconfig.spec.json"
+      }
+    ]
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/src/$1"
+  }
+}

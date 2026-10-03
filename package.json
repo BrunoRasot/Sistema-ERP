@@ -1,0 +1,17 @@
+{
+  "name": "vivelite-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Gestión Comercial y Logística Vivelite - Root Workspace",
+  "scripts": {
+    "test": "pnpm --dir backend test:all && pnpm --dir frontend test",
+    "test:backend": "pnpm --dir backend test:all",
+    "test:frontend": "pnpm --dir frontend test",
+    "test:cov": "pnpm --dir backend test:all:cov && pnpm --dir frontend test:cov",
+    "test:visual": "pnpm --dir frontend test:visual",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

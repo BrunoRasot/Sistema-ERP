@@ -1,0 +1,734 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// 1. ENUMS DEL SISTEMA
+// ==========================================
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  VENDEDOR
+  CAJERO
+  ALMACENERO
+  REPARTIDOR
+  SUPERVISOR
+}
+
+enum DocumentType {
+  DNI
+  RUC
+  CE
+  PASAPORTE
+  OTRO
+}
+
+enum CustomerType {
+  HOGAR
+  EMPRESA
+  DISTRIBUIDOR
+}
+
+enum LoyaltyTier {
+  BRONCE
+  PLATA
+  ORO
+  DIAMANTE
+}
+
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum UnitOfMeasure {
+  UNIDAD
+  BIDON_20L
+  BIDON_10L
+  CAJA
+  PAQUETE
+  LITRO
+}
+
+enum InventoryMovementType {
+  ENTRADA
+  SALIDA
+  AJUSTE
+  DEVOLUCION
+  MERMA
+  COMPRA
+  VENTA
+}
+
+enum BottleTransactionType {
+  ENTREGA
+  DEVOLUCION
+  PERDIDA
+  DANADO
+  AJUSTE
+}
+
+enum OrderStatus {
+  PENDIENTE
+  CONFIRMADO
+  PREPARANDO
+  EN_RUTA
+  ENTREGADO
+  CANCELADO
+}
+
+enum DeliveryStatus {
+  ASIGNADO
+  EN_RUTA
+  ENTREGADO
+  FALLIDO
+}
+
+enum SaleType {
+  CONTADO
+  CREDITO
+}
+
+enum PaymentStatus {
+  PENDIENTE
+  PARCIAL
+  PAGADO
+  VENCIDO
+  ANULADO
+}
+
+enum PaymentMethod {
+  EFECTIVO
+  YAPE
+  PLIN
+  TARJETA
+  TRANSFERENCIA
+}
+
+enum CashShiftStatus {
+  ABIERTA
+  CERRADA
+}
+
+enum CashMovementType {
+  INGRESO
+  EGRESO
+}
+
+enum InvoiceType {
+  BOLETA
+  FACTURA
+  NOTA_CREDITO
+  NOTA_DEBITO
+}
+
+enum SunatStatus {
+  PENDIENTE
+  PROCESANDO
+  ACEPTADO
+  RECHAZADO
+  ANULADO
+}
+
+enum NotificationChannel {
+  WHATSAPP
+  EMAIL
+  AMBOS
+  NINGUNO
+}
+
+enum NotificationDeliveryStatus {
+  PENDIENTE
+  ENVIADO
+  FALLIDO
+}
+
+// ==========================================
+// 2. AUTORIZACIÓN, USUARIOS Y AUDITORÍA
+// ==========================================
+
+model User {
+  id                   String        @id @default(uuid())
+  email                String        @unique
+  password             String
+  firstName            String
+  lastName             String
+  phone                String?
+  role                 Role          @default(VENDEDOR)
+  status               EntityStatus  @default(ACTIVE)
+  hashedRefreshToken   String?
+  lastLoginAt          DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  deletedAt            DateTime?
+
+  // Relaciones
+  auditLogs            AuditLog[]
+  inventoryMovements   InventoryMovement[]
+  bottleTransactions   BottleTransaction[]
+  ordersAsDriver       Order[]              @relation("DriverOrders")
+  deliveriesAsDriver   Delivery[]           @relation("DriverDeliveries")
+  sales                Sale[]               @relation("UserSales")
+  openedShifts         CashShift[]          @relation("ShiftOpenedBy")
+  closedShifts         CashShift[]          @relation("ShiftClosedBy")
+  cashMovements        CashMovement[]
+  paymentsReceived     Payment[]            @relation("PaymentReceivedBy")
+  purchasesCreated     Purchase[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model AuditLog {
+  id           String      @id @default(uuid())
+  userId       String?
+  action       String      // e.g., "CREATE_SALE", "UPDATE_PRICE", "VOID_INVOICE"
+  entity       String      // e.g., "Sale", "Product", "User"
+  entityId     String?
+  oldValues    Json?
+  newValues    Json?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime    @default(now())
+
+  user         User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ==========================================
+// 3. CLIENTES Y GESTIÓN DE BIDONES RETORNABLES
+// ==========================================
+
+model Customer {
+  id                 String         @id @default(uuid())
+  documentType       DocumentType   @default(DNI)
+  documentNumber     String         @unique
+  name               String
+  businessName       String?
+  phone              String
+  whatsapp           String?
+  email              String?
+  address            String
+  reference          String?
+  zone               String?        // Zona de reparto (ej: "Zona 1", "Zona Norte")
+  district           String?        // Distrito (ej: "Los Olivos", "Comas", "SMP")
+  subchannel         String?        // Subcanal (ej: "HOGAR", "EMPRESA", "DELIVERY", "MOSTRADOR", "WHATSAPP", "BODEGA")
+  latitude           Float?
+  longitude          Float?
+  customerType       CustomerType   @default(HOGAR)
+
+  loyaltyTier        LoyaltyTier    @default(BRONCE)
+  status             EntityStatus   @default(ACTIVE)
+  notes              String?
+
+  // Control de bidones en custodia del cliente
+  bottlesHolding     Int            @default(0)
+
+  // Control de crédito comercial
+  creditLimit        Decimal        @default(0) @db.Decimal(10, 2)
+  currentDebt        Decimal        @default(0) @db.Decimal(10, 2)
+
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  deletedAt          DateTime?
+
+  // Relaciones
+  orders             Order[]
+  sales              Sale[]
+  bottleTransactions BottleTransaction[]
+
+  @@index([documentNumber])
+  @@index([name])
+  @@index([phone])
+  @@index([whatsapp])
+  @@index([status])
+  @@map("customers")
+}
+
+model BottleTransaction {
+  id           String                @id @default(uuid())
+  customerId   String
+  type         BottleTransactionType
+  quantity     Int                   // Cantidad involucrada
+  balanceAfter Int                   // Saldo acumulado que le queda al cliente
+  orderId      String?
+  saleId       String?
+  recordedById String?
+  notes        String?
+  createdAt    DateTime              @default(now())
+
+  customer     Customer              @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order        Order?                @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  sale         Sale?                 @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  recordedBy   User?                 @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("bottle_transactions")
+}
+
+// ==========================================
+// 4. PRODUCTOS, CATEGORÍAS E INVENTARIO (KARDEX)
+// ==========================================
+
+model Category {
+  id          String        @id @default(uuid())
+  name        String        @unique
+  description String?
+  status      EntityStatus  @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           String             @id @default(uuid())
+  code         String             @unique
+  name         String
+  description  String?
+  categoryId   String
+  price        Decimal            @db.Decimal(10, 2) // Precio de venta base
+  cost         Decimal            @db.Decimal(10, 2) // Costo de adquisición/producción
+  unit         UnitOfMeasure      @default(UNIDAD)
+  stock        Int                @default(0)
+  minStock     Int                @default(10)
+  isReturnable Boolean            @default(false)    // Indica si involucra bidón retornable
+  imageUrl     String?
+  status       EntityStatus       @default(ACTIVE)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  deletedAt    DateTime?
+
+  category     Category           @relation(fields: [categoryId], references: [id])
+  movements    InventoryMovement[]
+  orderItems   OrderItem[]
+  saleItems    SaleItem[]
+  purchaseItems PurchaseItem[]
+
+  @@index([code])
+  @@index([name])
+  @@index([categoryId])
+  @@index([status])
+  @@map("products")
+}
+
+model InventoryMovement {
+  id             String                @id @default(uuid())
+  productId      String
+  movementType   InventoryMovementType
+  quantity       Int                   // Positivo o negativo según tipo
+  previousStock  Int
+  newStock       Int
+  unitCost       Decimal               @default(0) @db.Decimal(10, 2)
+  reason         String
+  referenceType  String?               // "SALE", "PURCHASE", "ORDER", "ADJUSTMENT"
+  referenceId    String?
+  userId         String?
+  createdAt      DateTime              @default(now())
+
+  product        Product               @relation(fields: [productId], references: [id])
+  user           User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([movementType])
+  @@index([createdAt])
+  @@map("inventory_movements")
+}
+
+// ==========================================
+// 5. PROVEEDORES Y COMPRAS
+// ==========================================
+
+model Supplier {
+  id           String        @id @default(uuid())
+  ruc          String        @unique
+  name         String
+  contactName  String?
+  phone        String?
+  email        String?
+  address      String?
+  status       EntityStatus  @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  purchases    Purchase[]
+
+  @@index([ruc])
+  @@index([name])
+  @@map("suppliers")
+}
+
+model Purchase {
+  id              String         @id @default(uuid())
+  purchaseNumber  String         @unique
+  supplierId      String
+  invoiceNumber   String?        // Comprobante del proveedor
+  total           Decimal        @db.Decimal(10, 2)
+  notes           String?
+  createdById     String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  supplier        Supplier       @relation(fields: [supplierId], references: [id])
+  createdBy       User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  items           PurchaseItem[]
+
+  @@index([purchaseNumber])
+  @@index([supplierId])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id          String   @id @default(uuid())
+  purchaseId  String
+  productId   String
+  quantity    Int
+  unitCost    Decimal  @db.Decimal(10, 2)
+  totalCost   Decimal  @db.Decimal(10, 2)
+
+  purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("purchase_items")
+}
+
+// ==========================================
+// 6. PEDIDOS Y REPARTOS (LOGÍSTICA / MÓVIL)
+// ==========================================
+
+model Order {
+  id                 String             @id @default(uuid())
+  orderNumber        String             @unique
+  customerId         String
+  driverId           String?            // Chofer/Repartidor asignado
+  status             OrderStatus        @default(PENDIENTE)
+  deliveryAddress    String
+  deliveryReference  String?
+  latitude           Float?
+  longitude          Float?
+  scheduledDate      DateTime?
+  deliveredAt        DateTime?
+  subtotal           Decimal            @db.Decimal(10, 2)
+  tax                Decimal            @default(0) @db.Decimal(10, 2)
+  total              Decimal            @db.Decimal(10, 2)
+  notes              String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  customer           Customer           @relation(fields: [customerId], references: [id])
+  driver             User?              @relation("DriverOrders", fields: [driverId], references: [id], onDelete: SetNull)
+  items              OrderItem[]
+  deliveries         Delivery[]
+  sales              Sale[]
+  bottleTransactions BottleTransaction[]
+
+  @@index([orderNumber])
+  @@index([customerId])
+  @@index([driverId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  totalPrice  Decimal  @db.Decimal(10, 2)
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model Delivery {
+  id                 String          @id @default(uuid())
+  orderId            String
+  driverId           String
+  status             DeliveryStatus  @default(ASIGNADO)
+  departureAt        DateTime?
+  arrivalAt          DateTime?
+  latitude           Float?
+  longitude          Float?
+  bottlesDelivered   Int             @default(0)
+  bottlesReturned    Int             @default(0)
+  notes              String?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  order              Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  driver             User            @relation("DriverDeliveries", fields: [driverId], references: [id])
+
+  @@index([orderId])
+  @@index([driverId])
+  @@index([status])
+  @@map("deliveries")
+}
+
+// ==========================================
+// 7. VENTAS, PAGOS Y CUENTAS POR COBRAR
+// ==========================================
+
+model Sale {
+  id                 String              @id @default(uuid())
+  saleNumber         String              @unique
+  customerId         String
+  userId             String?             // Usuario que registró la venta
+  orderId            String?             // Si provino de un pedido previo
+  saleType           SaleType            @default(CONTADO)
+  paymentStatus      PaymentStatus       @default(PAGADO)
+  subtotal           Decimal             @db.Decimal(10, 2)
+  discount           Decimal             @default(0) @db.Decimal(10, 2)
+  tax                Decimal             @default(0) @db.Decimal(10, 2)
+  total              Decimal             @db.Decimal(10, 2)
+  paidAmount         Decimal             @default(0) @db.Decimal(10, 2)
+  balanceDue         Decimal             @default(0) @db.Decimal(10, 2)
+  dueDate            DateTime?           // Para ventas a crédito
+  zone               String?             // Zona de reparto
+  district           String?             // Distrito
+  subchannel         String?             // Subcanal (ej: "HOGAR", "EMPRESA", "DELIVERY", "MOSTRADOR", "WHATSAPP", "BODEGA")
+  bottleCondition20L String?             // Condición envase 20L (ej: "RECARGA", "CON_ENVASE_NUEVO", "PRESTAMO")
+  notes              String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  customer           Customer            @relation(fields: [customerId], references: [id])
+  user               User?               @relation("UserSales", fields: [userId], references: [id], onDelete: SetNull)
+  order              Order?              @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  items              SaleItem[]
+  payments           Payment[]
+  electronicDocument ElectronicDocument?
+  bottleTransactions BottleTransaction[]
+
+  @@index([saleNumber])
+  @@index([customerId])
+  @@index([paymentStatus])
+  @@index([saleType])
+  @@index([createdAt])
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String   @id @default(uuid())
+  saleId      String
+  productId   String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  discount    Decimal  @default(0) @db.Decimal(10, 2)
+  totalPrice  Decimal  @db.Decimal(10, 2)
+
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+
+  @@map("sale_items")
+}
+
+model Payment {
+  id            String         @id @default(uuid())
+  saleId        String
+  shiftId       String?        // Vinculado a turno de caja
+  receivedById  String?        // Cajero/Repartidor receptor
+  amount        Decimal        @db.Decimal(10, 2)
+  paymentMethod PaymentMethod  @default(EFECTIVO)
+  operationCode String?        // Código de operación Yape/Plin/Transferencia
+  paymentDate   DateTime       @default(now())
+  notes         String?
+
+  sale          Sale           @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  shift         CashShift?     @relation(fields: [shiftId], references: [id], onDelete: SetNull)
+  receivedBy    User?          @relation("PaymentReceivedBy", fields: [receivedById], references: [id], onDelete: SetNull)
+
+  @@index([saleId])
+  @@index([shiftId])
+  @@index([paymentMethod])
+  @@index([paymentDate])
+  @@map("payments")
+}
+
+// ==========================================
+// 8. CAJA Y ARQUEO
+// ==========================================
+
+model CashRegister {
+  id          String        @id @default(uuid())
+  name        String        @unique // Ej: "Caja Principal", "Caja Móvil 01"
+  status      EntityStatus  @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  shifts      CashShift[]
+
+  @@map("cash_registers")
+}
+
+model CashShift {
+  id              String            @id @default(uuid())
+  cashRegisterId  String
+  openedById      String
+  closedById      String?
+  openedAt        DateTime          @default(now())
+  closedAt        DateTime?
+  initialBalance  Decimal           @db.Decimal(10, 2)
+  expectedBalance Decimal?          @db.Decimal(10, 2)
+  actualBalance   Decimal?          @db.Decimal(10, 2)
+  difference      Decimal?          @db.Decimal(10, 2)
+  status          CashShiftStatus   @default(ABIERTA)
+  notes           String?
+
+  cashRegister    CashRegister      @relation(fields: [cashRegisterId], references: [id])
+  openedBy        User              @relation("ShiftOpenedBy", fields: [openedById], references: [id])
+  closedBy        User?             @relation("ShiftClosedBy", fields: [closedById], references: [id], onDelete: SetNull)
+  movements       CashMovement[]
+  payments        Payment[]
+
+  @@index([cashRegisterId])
+  @@index([status])
+  @@map("cash_shifts")
+}
+
+model CashMovement {
+  id            String            @id @default(uuid())
+  shiftId       String
+  recordedById  String?
+  type          CashMovementType
+  amount        Decimal           @db.Decimal(10, 2)
+  paymentMethod PaymentMethod     @default(EFECTIVO)
+  reason        String
+  referenceType String?           // "EXPENSE", "INCOME_ADJUSTMENT", "SALE"
+  referenceId   String?
+  createdAt     DateTime          @default(now())
+
+  shift         CashShift         @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  recordedBy    User?             @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+
+  @@index([shiftId])
+  @@index([type])
+  @@map("cash_movements")
+}
+
+// ==========================================
+// 9. FACTURACIÓN ELECTRÓNICA (SUNAT / PERÚ)
+// ==========================================
+
+model ElectronicDocument {
+  id                     String                      @id @default(uuid())
+  saleId                 String                      @unique
+  invoiceType            InvoiceType
+  series                 String                      // Ej: "B001", "F001"
+  correlative            Int                         // Ej: 1254
+  issueDate              DateTime                    @default(now())
+  hash                   String?
+  xmlUrl                 String?
+  pdfUrl                 String?
+  cdrUrl                 String?
+  sunatStatus            SunatStatus                 @default(PENDIENTE)
+  sunatResponseCode      String?
+  sunatResponseMessage   String?
+  isVoided               Boolean                     @default(false)
+  voidReason             String?
+  customerChannel        NotificationChannel         @default(WHATSAPP)
+  notificationStatus     NotificationDeliveryStatus  @default(PENDIENTE)
+  createdAt              DateTime                    @default(now())
+  updatedAt              DateTime                    @updatedAt
+
+  sale                   Sale                        @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  notificationLogs       NotificationLog[]
+
+  @@unique([series, correlative])
+  @@index([invoiceType, series, correlative])
+  @@index([sunatStatus])
+  @@map("electronic_documents")
+}
+
+// ==========================================
+// 10. NOTIFICACIONES Y AUDITORÍA ASÍNCRONA
+// ==========================================
+
+model NotificationLog {
+  id                   String                     @id @default(uuid())
+  electronicDocumentId String?
+  channel              NotificationChannel
+  recipient            String                     // Teléfono o Email
+  subject              String?
+  messageBody          String
+  status               NotificationDeliveryStatus @default(PENDIENTE)
+  attempts             Int                        @default(0)
+  errorMessage         String?
+  sentAt               DateTime?
+  createdAt            DateTime                   @default(now())
+
+  electronicDocument   ElectronicDocument?        @relation(fields: [electronicDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([channel])
+  @@index([status])
+  @@map("notification_logs")
+}
+
+model Zone {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  districts District[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  bottleStocks BottleStock[] // inverse relation
+}
+
+
+model District {
+  id        Int      @id @default(autoincrement())
+  name      String
+  zone      Zone     @relation(fields: [zoneId], references: [id])
+  zoneId    Int
+  subChannels SubChannel[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([name, zoneId])
+}
+
+model SubChannel {
+  id          Int      @id @default(autoincrement())
+  name        String
+  district    District @relation(fields: [districtId], references: [id])
+  districtId  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([name, districtId])
+}
+
+model BottleCondition {
+  id          Int      @id @default(autoincrement())
+  code        String   @unique   // e.g., "BUENO", "MALO"
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BottleStock {
+  id          Int      @id @default(autoincrement())
+  zone        Zone?    @relation(fields: [zoneId], references: [id])
+  zoneId      Int?
+  productId   Int      // FK to product (if you have a Product model)
+  totalEmpty  Int      @default(0) // bidones vacíos en almacén
+  totalFull   Int      @default(0) // bidones llenos disponibles
+  threshold   Int?     // nivel de reorden
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
