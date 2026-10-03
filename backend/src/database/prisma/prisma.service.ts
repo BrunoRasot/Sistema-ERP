@@ -17,7 +17,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
       );
     }
 
-    const pool = new Pool({ connectionString });
+    const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+
+    const pool = new Pool({
+      connectionString,
+      ...(isLocalhost ? {} : { ssl: { rejectUnauthorized: false } }),
+    });
+
     const adapter = new PrismaPg(pool);
 
     super({
@@ -33,12 +39,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
-    this.logger.log('Conexión exitosa con la base de datos PostgreSQL (Prisma 7 Driver Adapter).');
+    this.logger.log('Conexion exitosa con la base de datos PostgreSQL (Prisma 7 Driver Adapter).');
   }
 
   async onModuleDestroy() {
     await this.$disconnect();
     await this.pool.end();
-    this.logger.log('Conexión con PostgreSQL cerrada correctamente.');
+    this.logger.log('Conexion con PostgreSQL cerrada correctamente.');
   }
 }

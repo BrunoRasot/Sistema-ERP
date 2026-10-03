@@ -8,7 +8,11 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required to run database seeds.');
 }
 
-const pool = new Pool({ connectionString });
+const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+const pool = new Pool({
+  connectionString,
+  ...(isLocalhost ? {} : { ssl: { rejectUnauthorized: false } }),
+});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 

@@ -15,6 +15,7 @@ import { ImportsModule } from './modules/imports/imports.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { AppSettingsConfigModule } from './modules/config/config.module';
 import { UsersModule } from './modules/users/users.module';
+import { QueueModule } from './modules/queue/queue.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -24,6 +25,7 @@ import { AppController } from './app.controller';
       envFilePath: ['.env'],
     }),
     PrismaModule,
+    QueueModule,
     AuthModule,
     HealthModule,
     CustomersModule,
