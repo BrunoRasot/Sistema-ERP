@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Order, OrderStatus } from '../types/order';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Button } from '@/components/ui';
 
 interface OrderCardProps {
   order: Order;
@@ -190,7 +191,7 @@ export function OrderCard({
         {order.status !== 'ENTREGADO' && order.status !== 'CANCELADO' && (
           <button
             onClick={() => onAssignDriver(order)}
-            className="text-[11px] font-bold text-brand-600 hover:text-brand-800"
+            className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
           >
             {order.driver ? 'Cambiar Chofer' : 'Asignar Chofer'}
           </button>
@@ -199,43 +200,51 @@ export function OrderCard({
 
       <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-2">
         {order.status === 'PENDIENTE' && (
-          <button
+          <Button
+            size="sm"
+            variant="primary"
             onClick={() => onUpdateStatus(order, 'CONFIRMADO')}
-            className="flex-1 py-2 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
+            icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+            className="flex-1 bg-sky-600 hover:bg-sky-700"
           >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Confirmar Pedido</span>
-          </button>
+            Confirmar Pedido
+          </Button>
         )}
 
         {order.status === 'CONFIRMADO' && (
-          <button
+          <Button
+            size="sm"
+            variant="primary"
             onClick={() => onUpdateStatus(order, 'PREPARANDO')}
-            className="flex-1 py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
+            icon={<Package className="w-3.5 h-3.5" />}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700"
           >
-            <Package className="w-3.5 h-3.5" />
-            <span>Preparar en Almacén</span>
-          </button>
+            Preparar en Almacén
+          </Button>
         )}
 
         {order.status === 'PREPARANDO' && (
-          <button
+          <Button
+            size="sm"
+            variant="primary"
             onClick={() => onUpdateStatus(order, 'EN_RUTA')}
-            className="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 shadow-sm"
+            icon={<Truck className="w-3.5 h-3.5" />}
+            className="flex-1 bg-purple-600 hover:bg-purple-700"
           >
-            <Truck className="w-3.5 h-3.5" />
-            <span>Despachar a Ruta</span>
-          </button>
+            Despachar a Ruta
+          </Button>
         )}
 
         {order.status === 'EN_RUTA' && (
-          <button
+          <Button
+            size="sm"
+            variant="success"
             onClick={() => onDeliver(order)}
-            className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-600/25 active:scale-95"
+            icon={<CheckCircle2 className="w-4 h-4 stroke-[3]" />}
+            className="flex-1 font-black shadow-md shadow-emerald-600/25"
           >
-            <CheckCircle2 className="w-4 h-4 stroke-[3]" />
-            <span>Cobrar y Entregar</span>
-          </button>
+            Cobrar y Entregar
+          </Button>
         )}
 
         {order.status === 'ENTREGADO' && (

@@ -9,10 +9,10 @@ import {
   Building2,
   Home,
   AlertCircle,
-  ChevronRight,
 } from 'lucide-react';
 import { Customer } from '../types/customer';
 import { formatCurrency } from '@/lib/utils';
+import { Badge, Button } from '@/components/ui';
 
 interface CustomerCardProps {
   customer: Customer;
@@ -29,39 +29,31 @@ export function CustomerCard({
   const cleanPhone = customer.whatsapp || customer.phone;
   const whatsappUrl = `https://wa.me/51${cleanPhone.replace(/\D/g, '')}`;
 
-  const tierColors: Record<string, string> = {
-    BRONCE: 'bg-amber-100 text-amber-800 border-amber-300',
-    PLATA: 'bg-slate-200 text-slate-700 border-slate-300',
-    ORO: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    DIAMANTE: 'bg-cyan-100 text-cyan-800 border-cyan-300',
+  const tierVariant: Record<string, 'warning' | 'default' | 'primary' | 'purple'> = {
+    BRONCE: 'warning',
+    PLATA: 'default',
+    ORO: 'warning',
+    DIAMANTE: 'primary',
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:shadow-md transition space-y-3.5">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 hover:shadow-md transition space-y-3.5">
       <div className="flex items-start justify-between gap-2">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                isCompany ? 'bg-indigo-50 text-indigo-700' : 'bg-brand-50 text-brand-700'
-              }`}
-            >
-              {isCompany ? <Building2 className="w-3 h-3" /> : <Home className="w-3 h-3" />}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Badge variant={isCompany ? 'purple' : 'primary'} size="sm">
+              {isCompany ? <Building2 className="w-3 h-3 mr-0.5 inline" /> : <Home className="w-3 h-3 mr-0.5 inline" />}
               {customer.customerType}
-            </span>
+            </Badge>
 
-            <span
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                tierColors[customer.loyaltyTier] || 'bg-slate-100 text-slate-600'
-              }`}
-            >
+            <Badge variant={tierVariant[customer.loyaltyTier] || 'default'} size="sm">
               {customer.loyaltyTier}
-            </span>
+            </Badge>
 
             {customer.subchannel && (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+              <Badge variant="default" size="sm">
                 {customer.subchannel}
-              </span>
+              </Badge>
             )}
 
             {(customer.zone || customer.district) && (
@@ -126,7 +118,7 @@ export function CustomerCard({
           <a
             href={`tel:${customer.phone}`}
             title="Llamar"
-            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition flex items-center justify-center"
           >
             <Phone className="w-4 h-4" />
           </a>
@@ -135,19 +127,21 @@ export function CustomerCard({
             target="_blank"
             rel="noopener noreferrer"
             title="Enviar WhatsApp"
-            className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition"
+            className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 transition flex items-center justify-center"
           >
             <MessageCircle className="w-4 h-4" />
           </a>
         </div>
 
-        <button
+        <Button
+          size="sm"
+          variant="secondary"
           onClick={() => onOpenBottleModal(customer)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 font-bold text-xs transition active:scale-95"
+          icon={<RotateCcw className="w-3.5 h-3.5 text-amber-600" />}
+          className="text-amber-800 border-amber-200 hover:bg-amber-50"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Retornar / Entregar</span>
-        </button>
+          Retornar / Entregar
+        </Button>
       </div>
     </div>
   );

@@ -4,16 +4,12 @@ import React from 'react';
 import {
   Wallet,
   Phone,
-  Calendar,
   AlertTriangle,
   Clock,
-  CheckCircle2,
-  DollarSign,
-  User,
-  ArrowRight,
 } from 'lucide-react';
 import { ReceivableSale } from '../types/payment';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Badge, Button } from '@/components/ui';
 
 interface ReceivableCardProps {
   sale: ReceivableSale;
@@ -23,7 +19,7 @@ interface ReceivableCardProps {
 export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
   return (
     <div
-      className={`bg-white rounded-3xl border shadow-sm hover:shadow-md transition p-4 sm:p-5 flex flex-col justify-between space-y-4 ${
+      className={`bg-white rounded-3xl border shadow-xs hover:shadow-md transition p-4 sm:p-5 flex flex-col justify-between space-y-4 ${
         sale.isLate ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'
       }`}
     >
@@ -41,15 +37,15 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
         </div>
 
         {sale.isLate ? (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-black uppercase tracking-wider">
-            <AlertTriangle className="w-3 h-3" />
-            <span>Mora: {sale.overdueDays}d</span>
-          </span>
+          <Badge variant="danger" size="sm">
+            <AlertTriangle className="w-3 h-3 mr-0.5 inline" />
+            Mora: {sale.overdueDays}d
+          </Badge>
         ) : (
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-black uppercase tracking-wider">
-            <Clock className="w-3 h-3" />
-            <span>Al Día</span>
-          </span>
+          <Badge variant="warning" size="sm">
+            <Clock className="w-3 h-3 mr-0.5 inline" />
+            Al Día
+          </Badge>
         )}
       </div>
 
@@ -66,7 +62,7 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
             <span className="text-slate-400">Contacto:</span>
             <a
               href={`tel:${sale.customer.phone}`}
-              className="text-brand-600 font-semibold hover:underline flex items-center gap-1"
+              className="text-blue-600 font-semibold hover:underline flex items-center gap-1"
             >
               <Phone className="w-3 h-3" />
               <span>{sale.customer.phone}</span>
@@ -107,13 +103,15 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
         </div>
       </div>
 
-      <button
+      <Button
+        variant="success"
+        size="md"
         onClick={() => onCollect(sale)}
-        className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition active:scale-95 flex items-center justify-center gap-2"
+        icon={<Wallet className="w-4 h-4" />}
+        className="w-full"
       >
-        <Wallet className="w-4 h-4" />
-        <span>Registrar Cobro / Amortizar</span>
-      </button>
+        Registrar Cobro / Amortizar
+      </Button>
     </div>
   );
 }

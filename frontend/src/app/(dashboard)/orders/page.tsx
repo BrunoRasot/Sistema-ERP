@@ -5,11 +5,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Truck,
   Plus,
-  Search,
   CheckCircle2,
   Clock,
   Package,
-  Loader2,
   MapPin,
   UserCheck,
 } from 'lucide-react';
@@ -22,6 +20,7 @@ import { AssignDriverModal } from '@/features/orders/components/assign-driver-mo
 import { DeliverOrderModal } from '@/features/orders/components/deliver-order-modal';
 import { OrderCard } from '@/features/orders/components/order-card';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   PENDIENTE:  { label: 'Pendiente',    color: 'bg-amber-100 text-amber-700' },
@@ -117,13 +116,14 @@ export default function OrdersPage() {
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
+          icon={<Plus className="w-4 h-4" />}
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-95 self-start sm:self-auto"
+          className="self-start sm:self-auto"
         >
-          <Plus className="w-4 h-4" />
-          <span>Nuevo Pedido</span>
-        </button>
+          Nuevo Pedido
+        </Button>
       </div>
 
       <div className="shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
@@ -169,16 +169,11 @@ export default function OrdersPage() {
       </div>
 
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por correlativo (PED-2026-...), cliente, teléfono o dirección de entrega..."
-            className="input pl-10 pr-4 py-2.5 text-xs sm:text-sm"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por correlativo (PED-2026-...), cliente, teléfono o dirección de entrega..."
+        />
 
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold scrollbar-none pb-0.5">
           {[
@@ -205,29 +200,27 @@ export default function OrdersPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <span className="text-xs font-semibold">Cargando pedidos y hoja de ruta...</span>
-        </div>
+        <LoadingState text="Cargando pedidos y hoja de ruta..." />
       ) : orders.length === 0 ? (
-        <div className="card py-16 text-center border-dashed p-8 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
-            <Truck className="w-6 h-6" />
-          </div>
-          <h3 className="text-base font-bold text-slate-800">No se encontraron pedidos</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            {search
+        <EmptyState
+          icon={<Truck className="w-8 h-8" />}
+          title="No se encontraron pedidos"
+          description={
+            search
               ? `No hay pedidos que coincidan con "${search}".`
-              : 'No hay pedidos registrados con el estado seleccionado.'}
-          </p>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-xs hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Crear Primer Pedido</span>
-          </button>
-        </div>
+              : 'No hay pedidos registrados con el estado seleccionado.'
+          }
+          action={
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Crear Primer Pedido
+            </Button>
+          }
+        />
       ) : (
         <>
           <div className="lg:hidden space-y-3">

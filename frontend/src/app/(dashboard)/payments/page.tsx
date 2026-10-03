@@ -19,6 +19,7 @@ import { ReceivableSale, PaymentHistoryItem } from '@/features/payments/types/pa
 import { CollectPaymentModal } from '@/features/payments/components/collect-payment-modal';
 import { ReceivableCard } from '@/features/payments/components/receivable-card';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { SearchInput, LoadingState, EmptyState, Button } from '@/components/ui';
 
 const PAYMENT_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
   PENDIENTE: { label: 'Pendiente',   color: 'bg-amber-100 text-amber-700' },
@@ -137,16 +138,11 @@ export default function PaymentsPage() {
       {activeTab === 'RECEIVABLES' ? (
         <div className="flex-1 min-h-0 flex flex-col space-y-3">
           <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por cliente, DNI, RUC, celular o comprobante (VTA-...)"
-                className="input pl-10 pr-4 py-2.5 text-xs sm:text-sm"
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por cliente, DNI, RUC, celular o comprobante (VTA-...)"
+            />
             <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold scrollbar-none pb-0.5">
               <button
                 onClick={() => setFilterType('ALL')}
@@ -183,7 +179,7 @@ export default function PaymentsPage() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   filterType === 'PARTIAL'
                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                    : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50'
+                    : 'bg-white text-indigo-700 border-indigo-200 hover:bg-slate-50'
                 }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5" /><span>Con Abonos Parciales</span>
@@ -192,20 +188,13 @@ export default function PaymentsPage() {
           </div>
 
           {loadingReceivables ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-              <span className="text-xs font-semibold">Cargando cuentas por cobrar...</span>
-            </div>
+            <LoadingState text="Cargando cuentas por cobrar..." />
           ) : receivables.length === 0 ? (
-            <div className="card py-16 text-center border-dashed p-8 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
-              <h3 className="text-base font-bold text-slate-800">¡Al día! No hay cuentas pendientes</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                {search ? `No se encontraron cuentas por cobrar para "${search}".` : 'Todos los clientes están al día con sus pagos.'}
-              </p>
-            </div>
+            <EmptyState
+              icon={<CheckCircle2 className="w-8 h-8 text-emerald-600" />}
+              title="¡Al día! No hay cuentas pendientes"
+              description={search ? `No se encontraron cuentas por cobrar para "${search}".` : 'Todos los clientes están al día con sus pagos.'}
+            />
           ) : (
             <>
               <div className="lg:hidden space-y-3">

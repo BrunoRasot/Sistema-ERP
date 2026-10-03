@@ -4,14 +4,11 @@ import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Users,
-  Search,
   UserPlus,
   RotateCcw,
   Building2,
   Home,
-  Loader2,
   AlertTriangle,
-  Phone,
   MessageCircle,
 } from 'lucide-react';
 import { customerService } from '@/features/customers/services/customer-service';
@@ -20,6 +17,7 @@ import { CreateCustomerModal } from '@/features/customers/components/create-cust
 import { BottleMovementModal } from '@/features/customers/components/bottle-movement-modal';
 import { CustomerCard } from '@/features/customers/components/customer-card';
 import { formatCurrency } from '@/lib/utils';
+import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
 
 const CUSTOMER_TYPE_LABELS: Record<string, { label: string; color: string }> = {
   HOGAR: { label: 'Hogar', color: 'bg-blue-50 text-blue-700' },
@@ -74,13 +72,14 @@ export default function CustomersPage() {
           </p>
         </div>
 
-        <button
+        <Button
+          variant="primary"
+          icon={<UserPlus className="w-4 h-4" />}
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-95 self-start sm:self-auto"
+          className="self-start sm:self-auto"
         >
-          <UserPlus className="w-4 h-4" />
-          <span>Nuevo Cliente</span>
-        </button>
+          Nuevo Cliente
+        </Button>
       </div>
 
       <div className="shrink-0 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -116,16 +115,11 @@ export default function CustomersPage() {
       </div>
 
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por DNI, RUC, Nombre, Celular o Dirección en Ica..."
-            className="input pl-10 pr-4 py-2.5 text-xs sm:text-sm"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por DNI, RUC, Nombre, Celular o Dirección en Ica..."
+        />
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs font-semibold">
           <button
@@ -178,37 +172,34 @@ export default function CustomersPage() {
       </div>
 
       {isLoading ? (
-        <div className="py-16 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-          <span className="text-xs font-semibold">Cargando directorio de clientes...</span>
-        </div>
+        <LoadingState text="Cargando directorio de clientes..." />
       ) : isError ? (
         <div className="card p-8 text-center space-y-3">
           <p className="text-sm font-semibold text-rose-600">Error al consultar los clientes desde el servidor.</p>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => refetch()}
-            className="btn btn-secondary text-xs"
           >
             Reintentar
-          </button>
+          </Button>
         </div>
       ) : customers.length === 0 ? (
-        <div className="card py-16 text-center border-dashed p-8 space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mx-auto">
-            <Users className="w-6 h-6" />
-          </div>
-          <h3 className="text-base font-bold text-slate-800">No se encontraron clientes</h3>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            {search ? `No hay resultados para "${search}".` : 'Aún no hay clientes registrados con este filtro.'}
-          </p>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl shadow-xs hover:bg-blue-700"
-          >
-            <UserPlus className="w-4 h-4" />
-            <span>Registrar Primer Cliente</span>
-          </button>
-        </div>
+        <EmptyState
+          icon={<Users className="w-8 h-8" />}
+          title="No se encontraron clientes"
+          description={search ? `No hay resultados para "${search}".` : 'Aún no hay clientes registrados con este filtro.'}
+          action={
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<UserPlus className="w-4 h-4" />}
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              Registrar Primer Cliente
+            </Button>
+          }
+        />
       ) : (
         <>
           <div className="lg:hidden space-y-3">

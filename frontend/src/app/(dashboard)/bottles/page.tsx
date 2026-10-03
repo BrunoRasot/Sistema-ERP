@@ -24,6 +24,7 @@ import { Customer } from '@/features/customers/types/customer';
 import { BottleMovementModal } from '@/features/customers/components/bottle-movement-modal';
 import { SkeletonMobileCard, SkeletonTable } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
+import { Modal, Input, Button } from '@/components/ui';
 
 export default function BottlesPage() {
   const queryClient = useQueryClient();
@@ -625,84 +626,63 @@ export default function BottlesPage() {
         />
       )}
 
-      {isUpdatingStock && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                <Sliders className="w-5 h-5 text-brand-600" />
-                Ajustar Stock de Bidones en Planta
-              </h3>
-              <button
-                onClick={() => setIsUpdatingStock(false)}
-                className="text-slate-400 hover:text-slate-600 text-lg font-bold"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSavePlantStock} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Bidones Llenos Disponibles (Stock listo para venta)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={fullStockInput}
-                  onChange={(e) => setFullStockInput(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-emerald-700 text-base focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Bidones Vacíos en Planta (Para lavado y recarga)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={emptyStockInput}
-                  onChange={(e) => setEmptyStockInput(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-bold text-cyan-700 text-base focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Umbral de Alerta Mínima de Stock
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={thresholdInput}
-                  onChange={(e) => setThresholdInput(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-                  required
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsUpdatingStock(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-600/25 transition"
-                >
-                  Guardar Cambios
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={isUpdatingStock}
+        onClose={() => setIsUpdatingStock(false)}
+        title="Ajustar Stock de Bidones en Planta"
+        description="Actualice los balances de bidones llenos y vacíos en almacén"
+        icon={<Sliders className="w-5 h-5" />}
+        size="md"
+        footer={
+          <div className="flex gap-2 w-full">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsUpdatingStock(false)}
+              className="flex-1"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              form="plant-stock-form"
+              variant="primary"
+              className="flex-1"
+            >
+              Guardar Cambios
+            </Button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form id="plant-stock-form" onSubmit={handleSavePlantStock} className="space-y-4">
+          <Input
+            label="Bidones Llenos Disponibles (Stock listo para venta)"
+            type="number"
+            min="0"
+            value={fullStockInput}
+            onChange={(e) => setFullStockInput(Number(e.target.value))}
+            required
+          />
+
+          <Input
+            label="Bidones Vacíos en Planta (Para lavado y recarga)"
+            type="number"
+            min="0"
+            value={emptyStockInput}
+            onChange={(e) => setEmptyStockInput(Number(e.target.value))}
+            required
+          />
+
+          <Input
+            label="Umbral de Alerta Mínima de Stock"
+            type="number"
+            min="1"
+            value={thresholdInput}
+            onChange={(e) => setThresholdInput(Number(e.target.value))}
+            required
+          />
+        </form>
+      </Modal>
     </div>
   );
 }

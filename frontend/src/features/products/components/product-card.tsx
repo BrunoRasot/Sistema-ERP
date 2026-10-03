@@ -2,15 +2,13 @@
 
 import React from 'react';
 import {
-  Package,
   RotateCcw,
   AlertTriangle,
   Boxes,
-  PlusCircle,
-  Tag,
 } from 'lucide-react';
 import { Product } from '../types/product';
 import { formatCurrency } from '@/lib/utils';
+import { Badge, Button } from '@/components/ui';
 
 interface ProductCardProps {
   product: Product;
@@ -29,23 +27,23 @@ export function ProductCard({ product, onOpenMovementModal }: ProductCardProps) 
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:shadow-md transition space-y-3.5 flex flex-col justify-between">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 hover:shadow-md transition space-y-3.5 flex flex-col justify-between">
       <div className="space-y-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 uppercase tracking-wider">
+            <Badge variant="default" size="sm">
               {product.code}
-            </span>
+            </Badge>
 
             {product.isReturnable ? (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                <RotateCcw className="w-3 h-3" />
+              <Badge variant="warning" size="sm">
+                <RotateCcw className="w-3 h-3 mr-0.5 inline" />
                 Retornable
-              </span>
+              </Badge>
             ) : (
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              <Badge variant="primary" size="sm">
                 Descartable
-              </span>
+              </Badge>
             )}
           </div>
 
@@ -76,15 +74,9 @@ export function ProductCard({ product, onOpenMovementModal }: ProductCardProps) 
                 Crítico
               </span>
             )}
-            <span
-              className={`font-black text-sm px-2 py-0.5 rounded-lg ${
-                isCritical
-                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                  : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-              }`}
-            >
+            <Badge variant={isCritical ? 'danger' : 'success'} size="md">
               {product.stock} {unitLabels[product.unit] || product.unit}
-            </span>
+            </Badge>
           </div>
         </div>
 
@@ -110,13 +102,14 @@ export function ProductCard({ product, onOpenMovementModal }: ProductCardProps) 
           Mín. alerta: <strong className="text-slate-700">{product.minStock}</strong>
         </span>
 
-        <button
+        <Button
+          size="sm"
+          variant="secondary"
           onClick={() => onOpenMovementModal(product)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition active:scale-95 shadow-sm"
+          icon={<Boxes className="w-3.5 h-3.5" />}
         >
-          <Boxes className="w-3.5 h-3.5" />
-          <span>Ajustar Stock</span>
-        </button>
+          Ajustar Stock
+        </Button>
       </div>
     </div>
   );

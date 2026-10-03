@@ -22,6 +22,7 @@ import { ElectronicDocument, InvoiceType } from '@/features/billing/types/billin
 import { TicketViewerModal } from '@/features/billing/components/ticket-viewer-modal';
 import { EmitInvoiceModal } from '@/features/billing/components/emit-invoice-modal';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
 
 export default function BillingPage() {
   const queryClient = useQueryClient();
@@ -162,16 +163,11 @@ export default function BillingPage() {
       {activeTab === 'ISSUED' ? (
         <div className="flex-1 min-h-0 flex flex-col space-y-3">
           <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por serie (B001, F001), cliente, DNI o RUC..."
-                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 bg-slate-50 focus:bg-white transition"
-              />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por serie (B001, F001), cliente, DNI o RUC..."
+            />
 
             <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold scrollbar-none pb-0.5">
               <button
@@ -189,8 +185,8 @@ export default function BillingPage() {
                 onClick={() => setInvoiceTypeFilter('BOLETA')}
                 className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   invoiceTypeFilter === 'BOLETA'
-                    ? 'bg-brand-600 text-white border-brand-600 shadow-sm'
-                    : 'bg-white text-brand-700 border-brand-200 hover:bg-brand-50'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
                 }`}
               >
                 Boletas Electrónicas (B001)
@@ -210,25 +206,23 @@ export default function BillingPage() {
           </div>
 
           {loadingDocuments ? (
-            <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
-              <span className="text-xs font-semibold">Cargando comprobantes electrónicos...</span>
-            </div>
+            <LoadingState text="Cargando comprobantes electrónicos..." />
           ) : documents.length === 0 ? (
-            <div className="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200 p-8 space-y-3">
-              <Receipt className="w-10 h-10 mx-auto text-slate-300" />
-              <h3 className="text-base font-bold text-slate-800">No hay comprobantes emitidos</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                No hay comprobantes que coincidan con la búsqueda. Puedes emitir comprobantes desde la pestaña "Por Facturar".
-              </p>
-              <button
-                onClick={() => setActiveTab('UNINVOICED')}
-                className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-brand-700"
-              >
-                <FileText className="w-4 h-4" />
-                <span>Ver Ventas por Facturar</span>
-              </button>
-            </div>
+            <EmptyState
+              icon={<Receipt className="w-10 h-10" />}
+              title="No hay comprobantes emitidos"
+              description="No hay comprobantes que coincidan con la búsqueda. Puedes emitir comprobantes desde la pestaña 'Por Facturar'."
+              action={
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<FileText className="w-4 h-4" />}
+                  onClick={() => setActiveTab('UNINVOICED')}
+                >
+                  Ver Ventas por Facturar
+                </Button>
+              }
+            />
           ) : (
             <div className="flex-1 min-h-0 card overflow-hidden flex flex-col">
               <div className="overflow-y-auto overflow-x-auto flex-1 divide-y divide-slate-100">
