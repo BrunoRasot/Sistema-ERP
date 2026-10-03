@@ -32,6 +32,7 @@ import { Zone, District, SubChannel, BottleCondition } from '@/features/config/t
 import { userService } from '@/features/users/services/user-service';
 import { SystemUser } from '@/features/users/types/user';
 import { UserModal } from '@/features/users/components/user-modal';
+import { Button, SearchInput } from '@/components/ui';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -288,16 +289,16 @@ export default function SettingsPage() {
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {activeTab === 'USERS' && (
-            <button
+            <Button
+              variant="primary"
+              icon={<UserPlus className="w-4 h-4" />}
               onClick={() => {
                 setSelectedUserForEdit(null);
                 setIsUserModalOpen(true);
               }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-600/20 transition active:scale-95"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>Nuevo Usuario</span>
-            </button>
+              Nuevo Usuario
+            </Button>
           )}
         </div>
       </div>
@@ -391,26 +392,12 @@ export default function SettingsPage() {
 
       {activeTab === 'USERS' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="relative flex-1 max-w-md">
-              <input
-                type="text"
-                value={userSearch}
-                onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Buscar por nombre, correo o teléfono..."
-                className="w-full pl-3 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500/20"
-              />
-            </div>
-            <button
-              onClick={() => {
-                setSelectedUserForEdit(null);
-                setIsUserModalOpen(true);
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-600/20 transition active:scale-95"
-            >
-              <UserPlus className="w-4 h-4" />
-              <span>Agregar Usuario</span>
-            </button>
+          <div className="max-w-md">
+            <SearchInput
+              value={userSearch}
+              onChange={setUserSearch}
+              placeholder="Buscar por nombre, correo o teléfono..."
+            />
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
