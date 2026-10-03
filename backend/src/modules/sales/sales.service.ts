@@ -63,12 +63,16 @@ export class SalesService {
         }
       }
 
-      let activeShift: any = null;
-      if (createDto.payment && createDto.payment.amount > 0) {
-        activeShift = await tx.cashShift.findFirst({
-          where: { status: CashShiftStatus.ABIERTA },
-          orderBy: { openedAt: 'desc' },
-        });
+      // 2. Validar obligatoriamente que la caja se encuentre ABIERTA
+      const activeShift = await tx.cashShift.findFirst({
+        where: { status: CashShiftStatus.ABIERTA },
+        orderBy: { openedAt: 'desc' },
+      });
+
+      if (!activeShift) {
+        throw new BadRequestException(
+          'No se puede realizar ninguna venta porque la caja se encuentra cerrada. Debe aperturar un turno de caja previamente.',
+        );
       }
 
       // 3. Generar número de comprobante interno de venta correlativo (concurrencia segura)

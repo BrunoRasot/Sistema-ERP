@@ -60,7 +60,7 @@ const mockCustomers: Customer[] = [
 ];
 
 describe('Unit Test: PosTerminal Component', () => {
-  it('should block cash sale and show error when cash shift is closed', async () => {
+  it('should block sale and show error when cash shift is closed', async () => {
     render(
       <PosTerminal
         products={mockProducts}
@@ -76,13 +76,13 @@ describe('Unit Test: PosTerminal Component', () => {
       fireEvent.click(productButton);
     }
 
-    // Attempt to submit sale in cash with closed shift
+    // Attempt to submit sale with closed shift
     const submitButton = screen.getByRole('button', { name: /Cobrar/i });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Debe aperturar un turno de caja para registrar cobros en efectivo/i),
+        screen.getByText(/No se puede realizar ninguna venta porque la caja se encuentra cerrada/i),
       ).toBeInTheDocument();
     });
   });

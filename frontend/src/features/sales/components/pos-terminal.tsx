@@ -16,6 +16,8 @@ import {
   UserCheck,
   Receipt,
   AlertCircle,
+  AlertTriangle,
+  Lock,
   Printer,
   ChevronDown,
   ChevronUp,
@@ -149,8 +151,10 @@ export function PosTerminal({
       return;
     }
 
-    if (!isShiftOpen && paymentMethod === 'EFECTIVO') {
-      setErrorMessage('Debe aperturar un turno de caja para registrar cobros en efectivo');
+    if (!isShiftOpen) {
+      setErrorMessage(
+        'No se puede realizar ninguna venta porque la caja se encuentra cerrada. Debe aperturar un turno de caja para operar.',
+      );
       return;
     }
 
@@ -466,6 +470,18 @@ export function PosTerminal({
           </div>
 
           <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 pr-2">
+            {!isShiftOpen && (
+              <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl flex items-center gap-2.5 text-xs text-amber-900 shadow-xs">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                <div className="leading-tight">
+                  <p className="font-bold text-amber-950">Caja Cerrada — Ventas Inhabilitadas</p>
+                  <p className="text-[11px] text-amber-800 mt-0.5">
+                    Debe aperturar un turno de caja desde el panel superior para poder registrar cobros y emitir ventas.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-1">
               <label className="block text-xs font-bold text-slate-700">Cliente:</label>
               <select
@@ -869,10 +885,19 @@ export function PosTerminal({
             <button
               onClick={handleSubmitSale}
               disabled={isLoading || cart.length === 0}
-              className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              className={`w-full py-3 rounded-2xl font-black text-sm shadow-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 ${
+                !isShiftOpen
+                  ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+              }`}
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
+              ) : !isShiftOpen ? (
+                <>
+                  <Lock className="w-4 h-4 text-amber-700" />
+                  <span>Cobrar {formatCurrency(totalAmount)} (Caja Cerrada)</span>
+                </>
               ) : (
                 <>
                   <Check className="w-5 h-5 stroke-[2.5]" />
