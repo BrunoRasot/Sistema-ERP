@@ -30,17 +30,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=10000
 
-RUN npm install -g pnpm@9
-
-COPY package.json pnpm-lock.yaml ./
-COPY prisma ./prisma/
-COPY prisma.config.ts ./
-
-RUN pnpm install --frozen-lockfile --prod
-
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Prisma 7 with pnpm stores the generated client in pnpm's virtual store, so
+# copy the dependency tree produced by the builder instead of assuming a
+# node_modules/.prisma directory exists.
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 10000
 
