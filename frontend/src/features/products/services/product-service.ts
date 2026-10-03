@@ -9,6 +9,7 @@ export const productService = {
     categoryId?: string;
     isReturnable?: boolean;
     isLowStock?: boolean;
+    status?: 'ACTIVE' | 'INACTIVE';
   } = {}): Promise<ProductListResponse> {
     const query = new URLSearchParams();
     if (params.page) query.append('page', params.page.toString());
@@ -17,6 +18,7 @@ export const productService = {
     if (params.categoryId) query.append('categoryId', params.categoryId);
     if (params.isReturnable !== undefined) query.append('isReturnable', params.isReturnable.toString());
     if (params.isLowStock !== undefined) query.append('isLowStock', params.isLowStock.toString());
+    if (params.status) query.append('status', params.status);
 
     return apiClient<ProductListResponse>(`/products?${query.toString()}`);
   },

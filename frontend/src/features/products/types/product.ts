@@ -56,4 +56,5 @@ export interface CreateProductInput {
   minStock?: number;
   isReturnable?: boolean;
   imageUrl?: string;
+  status?: EntityStatus;
 }

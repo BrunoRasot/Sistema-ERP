@@ -8,10 +8,13 @@ import {
   RotateCcw,
   AlertTriangle,
   Settings,
+  Edit3,
+  Power,
 } from 'lucide-react';
 import { productService } from '@/features/products/services/product-service';
 import { Product } from '@/features/products/types/product';
 import { CreateProductModal } from '@/features/products/components/create-product-modal';
+import { EditProductModal } from '@/features/products/components/edit-product-modal';
 import { KardexMovementModal } from '@/features/inventory/components/kardex-movement-modal';
 import { ProductCard } from '@/features/products/components/product-card';
 import { formatCurrency } from '@/lib/utils';
@@ -20,7 +23,7 @@ import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
 const UNIT_LABELS: Record<string, string> = {
   UNIDAD: 'Unidad',
   BIDON_20L: 'Bidón 20L',
-  BIDON_10L: 'Bidón 10L',
+  BIDON_10L: 'BidON 10L',
   CAJA: 'Caja',
   PAQUETE: 'Paquete',
   LITRO: 'Litro',
@@ -29,8 +32,9 @@ const UNIT_LABELS: Record<string, string> = {
 export default function ProductsPage() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<'ALL' | 'RETURNABLE' | 'LOW_STOCK'>('ALL');
+  const [filterType, setFilterType] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'RETURNABLE' | 'LOW_STOCK'>('ALL');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [selectedProductForMovement, setSelectedProductForMovement] = useState<Product | null>(null);
 
   const { data: categories = [] } = useQuery({
@@ -43,6 +47,7 @@ export default function ProductsPage() {
     queryFn: () =>
       productService.getProducts({
         search: search.trim() || undefined,
+        status: filterType === 'ACTIVE' ? 'ACTIVE' : filterType === 'INACTIVE' ? 'INACTIVE' : undefined,
         isReturnable: filterType === 'RETURNABLE' ? true : undefined,
         isLowStock: filterType === 'LOW_STOCK' ? true : undefined,
         limit: 50,
@@ -58,6 +63,25 @@ export default function ProductsPage() {
   const total = data?.meta?.total ?? products.length;
   const returnableCount = products.filter((p) => p.isReturnable).length;
   const lowStockCount = products.filter((p) => p.stock <= p.minStock).length;
+
+  const handleToggleStatus = async (product: Product) => {
+    const newStatus = product.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const confirmMsg =
+      newStatus === 'INACTIVE'
+        ? `¿Deseas deshabilitar "${product.name}"? El producto ya no aparecerá disponible para ventas en el Terminal POS.`
+        : `¿Deseas habilitar "${product.name}" para venta activa en catálogo?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      await productService.updateProduct(product.id, { status: newStatus });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
+      queryClient.invalidateQueries({ queryKey: ['products-pos'] });
+    } catch (err: any) {
+      alert(err?.message || 'Error al cambiar estado del producto');
+    }
+  };
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
@@ -122,6 +146,26 @@ export default function ProductsPage() {
             Todos ({total})
           </button>
           <button
+            onClick={() => setFilterType('ACTIVE')}
+            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
+              filterType === 'ACTIVE'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+            }`}
+          >
+            Activos
+          </button>
+          <button
+            onClick={() => setFilterType('INACTIVE')}
+            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
+              filterType === 'INACTIVE'
+                ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Deshabilitados
+          </button>
+          <button
             onClick={() => setFilterType('RETURNABLE')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               filterType === 'RETURNABLE'
@@ -177,6 +221,8 @@ export default function ProductsPage() {
                 key={product.id}
                 product={product}
                 onOpenMovementModal={(p) => setSelectedProductForMovement(p)}
+                onEditProduct={(p) => setProductToEdit(p)}
+                onToggleStatus={handleToggleStatus}
               />
             ))}
             <div className="text-center text-xs text-slate-400 font-medium py-2">
@@ -204,11 +250,19 @@ export default function ProductsPage() {
                 <tbody className="divide-y divide-slate-100">
                   {products.map((product) => {
                     const isLow = product.stock <= product.minStock;
+                    const isInactive = product.status === 'INACTIVE';
                     return (
-                      <tr key={product.id} className="hover:bg-slate-50/70 transition-colors">
+                      <tr
+                        key={product.id}
+                        className={`hover:bg-slate-50/70 transition-colors ${
+                          isInactive ? 'bg-slate-50/40 text-slate-400' : ''
+                        }`}
+                      >
                         <td className="px-4 py-3 font-mono text-slate-600 whitespace-nowrap">{product.code}</td>
                         <td className="px-4 py-3 min-w-[200px]">
-                          <p className="font-bold text-slate-900 leading-tight">{product.name}</p>
+                          <p className={`font-bold leading-tight ${isInactive ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                            {product.name}
+                          </p>
                           {product.description && (
                             <p className="text-[11px] text-slate-400 truncate max-w-[220px]">{product.description}</p>
                           )}
@@ -244,6 +298,15 @@ export default function ProductsPage() {
                         <td className="px-4 py-3 text-center text-slate-500">{product.minStock}</td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
                           <div className="flex flex-col items-center gap-1">
+                            <span
+                              className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                                product.status === 'ACTIVE'
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-rose-100 text-rose-700'
+                              }`}
+                            >
+                              {product.status === 'ACTIVE' ? 'Activo' : 'Deshabilitado'}
+                            </span>
                             {product.isReturnable && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold">
                                 <RotateCcw className="w-2.5 h-2.5" /> Retornable
@@ -254,21 +317,39 @@ export default function ProductsPage() {
                                 <AlertTriangle className="w-2.5 h-2.5" /> Stock bajo
                               </span>
                             )}
-                            {!product.isReturnable && !isLow && (
-                              <span className="inline-flex px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-semibold">
-                                Normal
-                              </span>
-                            )}
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <button
-                            onClick={() => setSelectedProductForMovement(product)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-700 text-white text-[11px] font-bold rounded-lg transition"
-                          >
-                            <Settings className="w-3 h-3" />
-                            Ajustar Stock
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              onClick={() => setProductToEdit(product)}
+                              title="Modificar precio y detalles del producto"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold rounded-lg transition"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => setSelectedProductForMovement(product)}
+                              title="Ajustar Stock en Kardex"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg transition"
+                            >
+                              <Settings className="w-3.5 h-3.5" />
+                              Stock
+                            </button>
+                            <button
+                              onClick={() => handleToggleStatus(product)}
+                              title={product.status === 'ACTIVE' ? 'Deshabilitar producto para ventas' : 'Habilitar producto'}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold rounded-lg transition ${
+                                product.status === 'ACTIVE'
+                                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700'
+                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                              }`}
+                            >
+                              <Power className="w-3.5 h-3.5" />
+                              {product.status === 'ACTIVE' ? 'Deshabilitar' : 'Habilitar'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -294,6 +375,18 @@ export default function ProductsPage() {
         }}
       />
 
+      <EditProductModal
+        product={productToEdit}
+        categories={categories}
+        isOpen={!!productToEdit}
+        onClose={() => setProductToEdit(null)}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['products'] });
+          queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
+          queryClient.invalidateQueries({ queryKey: ['products-pos'] });
+        }}
+      />
+
       {selectedProductForMovement && (
         <KardexMovementModal
           product={selectedProductForMovement}
@@ -309,3 +402,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+

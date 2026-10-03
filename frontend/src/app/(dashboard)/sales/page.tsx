@@ -62,10 +62,10 @@ export default function SalesPage() {
     queryFn: () => cashService.getRegisters(),
   });
 
-  // Consultar productos para el POS
+  // Consultar productos para el POS (únicamente productos ACTIVOS)
   const { data: productsData, isLoading: loadingProducts } = useQuery({
     queryKey: ['products-pos'],
-    queryFn: () => productService.getProducts({ limit: 100 }),
+    queryFn: () => productService.getProducts({ limit: 100, status: 'ACTIVE' }),
   });
 
   // Consultar clientes para el POS
