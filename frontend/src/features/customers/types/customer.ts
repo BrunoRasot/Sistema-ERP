@@ -28,6 +28,34 @@ export interface Customer {
   currentDebt: string | number;
   createdAt: string;
   updatedAt: string;
+  // Métricas reales de compra
+  totalPurchases?: number;
+  salesCount?: number;
+  averageTicket?: number;
+  lastPurchase?: string | null;
+  purchaseCategory?: 'TOP_BUYER' | 'FREQUENT' | 'OCCASIONAL' | 'NO_PURCHASES';
+}
+
+export interface CustomerTopBuyerSummary {
+  id: string;
+  name: string;
+  documentNumber: string;
+  customerType: CustomerType;
+  totalPurchases: number;
+  salesCount: number;
+  averageTicket: number;
+  lastPurchase: string | null;
+}
+
+export interface CustomerCategoriesSummary {
+  topBuyer: CustomerTopBuyerSummary | null;
+  leastBuyer: CustomerTopBuyerSummary | null;
+  topBuyersCount: number;
+  frequentCount: number;
+  occasionalCount: number;
+  noPurchasesCount: number;
+  totalCustomers: number;
+  totalRevenue: number;
 }
 
 export interface BottleTransaction {

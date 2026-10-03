@@ -64,8 +64,108 @@ export class CustomersService {
     return customer;
   }
 
+  private calculateCustomerPurchaseMetrics(customer: any) {
+    const sales = customer.sales || [];
+    const totalPurchases = sales.reduce((acc: number, s: any) => acc + Number(s.total || 0), 0);
+    const salesCount = sales.length;
+    const averageTicket = salesCount > 0 ? Math.round((totalPurchases / salesCount) * 100) / 100 : 0;
+    const lastPurchase = sales.length > 0
+      ? sales.reduce((latest: any, s: any) => (new Date(s.createdAt) > new Date(latest) ? s.createdAt : latest), sales[0].createdAt)
+      : null;
+
+    let purchaseCategory: 'TOP_BUYER' | 'FREQUENT' | 'OCCASIONAL' | 'NO_PURCHASES' = 'NO_PURCHASES';
+    if (salesCount === 0) {
+      purchaseCategory = 'NO_PURCHASES';
+    } else if (salesCount >= 5 || totalPurchases >= 200) {
+      purchaseCategory = 'TOP_BUYER';
+    } else if (salesCount >= 2 || totalPurchases >= 40) {
+      purchaseCategory = 'FREQUENT';
+    } else {
+      purchaseCategory = 'OCCASIONAL';
+    }
+
+    const { sales: _s, ...rest } = customer;
+    return {
+      ...rest,
+      totalPurchases,
+      salesCount,
+      averageTicket,
+      lastPurchase,
+      purchaseCategory,
+    };
+  }
+
+  async getCategoriesSummary() {
+    const customers = await this.prisma.customer.findMany({
+      where: { deletedAt: null },
+      include: {
+        sales: {
+          where: { paymentStatus: { not: 'ANULADO' } },
+          select: { total: true, createdAt: true },
+        },
+      },
+    });
+
+    const customersWithMetrics = customers.map((c) => this.calculateCustomerPurchaseMetrics(c));
+
+    const customersWithPurchases = customersWithMetrics.filter((c) => c.salesCount > 0);
+    const sortedByPurchases = [...customersWithPurchases].sort((a, b) => b.totalPurchases - a.totalPurchases);
+
+    const topBuyer = sortedByPurchases.length > 0 ? sortedByPurchases[0] : null;
+    const leastBuyer = sortedByPurchases.length > 0 ? sortedByPurchases[sortedByPurchases.length - 1] : null;
+
+    const topBuyersCount = customersWithMetrics.filter((c) => c.purchaseCategory === 'TOP_BUYER').length;
+    const frequentCount = customersWithMetrics.filter((c) => c.purchaseCategory === 'FREQUENT').length;
+    const occasionalCount = customersWithMetrics.filter((c) => c.purchaseCategory === 'OCCASIONAL').length;
+    const noPurchasesCount = customersWithMetrics.filter((c) => c.purchaseCategory === 'NO_PURCHASES').length;
+    const totalRevenue = customersWithMetrics.reduce((acc, c) => acc + c.totalPurchases, 0);
+
+    return {
+      topBuyer: topBuyer
+        ? {
+            id: topBuyer.id,
+            name: topBuyer.name,
+            documentNumber: topBuyer.documentNumber,
+            customerType: topBuyer.customerType,
+            totalPurchases: topBuyer.totalPurchases,
+            salesCount: topBuyer.salesCount,
+            averageTicket: topBuyer.averageTicket,
+            lastPurchase: topBuyer.lastPurchase,
+          }
+        : null,
+      leastBuyer: leastBuyer
+        ? {
+            id: leastBuyer.id,
+            name: leastBuyer.name,
+            documentNumber: leastBuyer.documentNumber,
+            customerType: leastBuyer.customerType,
+            totalPurchases: leastBuyer.totalPurchases,
+            salesCount: leastBuyer.salesCount,
+            averageTicket: leastBuyer.averageTicket,
+            lastPurchase: leastBuyer.lastPurchase,
+          }
+        : null,
+      topBuyersCount,
+      frequentCount,
+      occasionalCount,
+      noPurchasesCount,
+      totalCustomers: customers.length,
+      totalRevenue,
+    };
+  }
+
   async findAll(filterDto: FilterCustomerDto) {
-    const { page = 1, limit = 20, search, customerType, loyaltyTier, withBottlesPending } = filterDto;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      customerType,
+      loyaltyTier,
+      withBottlesPending,
+      purchaseCategory,
+      sortBy = 'RECENT',
+    } = filterDto;
+
     const skip = (page - 1) * limit;
 
     const where: Prisma.CustomerWhereInput = {
@@ -96,18 +196,41 @@ export class CustomersService {
       where.bottlesHolding = { gt: 0 };
     }
 
-    const [total, items] = await Promise.all([
-      this.prisma.customer.count({ where }),
-      this.prisma.customer.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
+    const customers = await this.prisma.customer.findMany({
+      where,
+      include: {
+        sales: {
+          where: { paymentStatus: { not: 'ANULADO' } },
+          select: { total: true, createdAt: true },
+        },
+      },
+      orderBy:
+        sortBy === 'NAME'
+          ? { name: 'asc' }
+          : sortBy === 'DEBT'
+          ? { currentDebt: 'desc' }
+          : sortBy === 'BOTTLES'
+          ? { bottlesHolding: 'desc' }
+          : { createdAt: 'desc' },
+    });
+
+    let formattedItems = customers.map((c) => this.calculateCustomerPurchaseMetrics(c));
+
+    if (purchaseCategory) {
+      formattedItems = formattedItems.filter((c) => c.purchaseCategory === purchaseCategory);
+    }
+
+    if (sortBy === 'MOST_PURCHASES') {
+      formattedItems.sort((a, b) => b.totalPurchases - a.totalPurchases);
+    } else if (sortBy === 'LEAST_PURCHASES') {
+      formattedItems.sort((a, b) => a.totalPurchases - b.totalPurchases);
+    }
+
+    const total = formattedItems.length;
+    const paginatedItems = formattedItems.slice(skip, skip + limit);
 
     return {
-      data: items,
+      data: paginatedItems,
       meta: {
         total,
         page,

@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/api/client';
 import {
   Customer,
   CustomerListResponse,
+  CustomerCategoriesSummary,
   CreateCustomerInput,
   RegisterBottleInput,
   BottleTransaction,
@@ -14,6 +15,8 @@ export const customerService = {
     search?: string;
     customerType?: string;
     withBottlesPending?: boolean;
+    purchaseCategory?: string;
+    sortBy?: string;
   } = {}): Promise<CustomerListResponse> {
     const query = new URLSearchParams();
     if (params.page) query.append('page', params.page.toString());
@@ -21,8 +24,14 @@ export const customerService = {
     if (params.search) query.append('search', params.search);
     if (params.customerType) query.append('customerType', params.customerType);
     if (params.withBottlesPending) query.append('withBottlesPending', 'true');
+    if (params.purchaseCategory) query.append('purchaseCategory', params.purchaseCategory);
+    if (params.sortBy) query.append('sortBy', params.sortBy);
 
     return apiClient<CustomerListResponse>(`/customers?${query.toString()}`);
+  },
+
+  async getCategoriesSummary(): Promise<CustomerCategoriesSummary> {
+    return apiClient<CustomerCategoriesSummary>('/customers/categories-summary');
   },
 
   async getCustomerById(id: string): Promise<Customer & { metrics: any }> {

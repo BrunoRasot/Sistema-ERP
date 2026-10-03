@@ -49,6 +49,13 @@ export class CustomersController {
     return this.customersService.findAll(filterDto);
   }
 
+  @Get('categories-summary')
+  @ApiOperation({ summary: 'Obtener resumen de categorías de clientes por volumen de compra' })
+  @ApiResponse({ status: 200, description: 'Resumen de clientes que más compran, menos compran y distribución' })
+  getCategoriesSummary() {
+    return this.customersService.getCategoriesSummary();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener detalle de un cliente con métricas de compra y deuda' })
   @ApiResponse({ status: 200, description: 'Detalle de cliente' })

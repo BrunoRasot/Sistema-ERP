@@ -113,6 +113,41 @@ export function CustomerCard({
         </div>
       )}
 
+      {/* Resumen de Compras y Categoría de Cliente */}
+      <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+        <div>
+          <span className="text-[10px] text-slate-400 block font-medium">Compras Acumuladas:</span>
+          <span className="font-extrabold text-slate-900 text-sm">
+            {formatCurrency(customer.totalPurchases || 0)}
+          </span>
+          <span className="text-[10px] text-slate-400 ml-1.5 font-normal">
+            ({customer.salesCount || 0} {customer.salesCount === 1 ? 'pedido' : 'pedidos'})
+          </span>
+        </div>
+        <div>
+          {customer.purchaseCategory === 'TOP_BUYER' && (
+            <Badge variant="warning" size="sm">
+              🌟 Mayor Compra
+            </Badge>
+          )}
+          {customer.purchaseCategory === 'FREQUENT' && (
+            <Badge variant="success" size="sm">
+              🛒 Frecuente
+            </Badge>
+          )}
+          {customer.purchaseCategory === 'OCCASIONAL' && (
+            <Badge variant="default" size="sm">
+              📉 Menor Compra
+            </Badge>
+          )}
+          {(!customer.purchaseCategory || customer.purchaseCategory === 'NO_PURCHASES') && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 text-slate-500">
+              🆕 Sin Compras
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           <a

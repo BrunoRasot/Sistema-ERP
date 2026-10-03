@@ -37,4 +37,14 @@ export class FilterCustomerDto {
   @IsOptional()
   @Type(() => Boolean)
   withBottlesPending?: boolean;
+
+  @ApiPropertyOptional({ description: 'Categoría de compra (TOP_BUYER, FREQUENT, OCCASIONAL, NO_PURCHASES)' })
+  @IsOptional()
+  @IsString()
+  purchaseCategory?: 'TOP_BUYER' | 'FREQUENT' | 'OCCASIONAL' | 'NO_PURCHASES';
+
+  @ApiPropertyOptional({ description: 'Criterio de ordenamiento' })
+  @IsOptional()
+  @IsString()
+  sortBy?: 'MOST_PURCHASES' | 'LEAST_PURCHASES' | 'RECENT' | 'NAME' | 'DEBT' | 'BOTTLES';
 }
