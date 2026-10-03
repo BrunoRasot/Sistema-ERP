@@ -38,7 +38,7 @@ describe('E2E Workflow: POS Sale, Inventory Impact, and Invoicing Pipeline', () 
           .set('Authorization', `Bearer ${authToken}`)
           .send({
             cashRegisterId: registerId,
-            initialAmount: 100,
+            initialBalance: 100,
           });
       }
     }

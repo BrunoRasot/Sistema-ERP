@@ -3,8 +3,8 @@
 
 echo "Vivelite Quality Gate: Ejecutando verificación pre-push..."
 
-echo "1/2: Ejecutando Pruebas Backend (Jest + Integración + Concurrencia)..."
-pnpm --dir backend test:all
+echo "1/2: Ejecutando Pruebas Backend (Jest Unit)..."
+pnpm --dir backend test
 if [ $? -ne 0 ]; then
   echo "Fallaron las pruebas del backend. Push abortado."
   exit 1

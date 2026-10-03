@@ -39,7 +39,7 @@ describe('Integration Test: Concurrency & Race Condition Prevention', () => {
           .set('Authorization', `Bearer ${authToken}`)
           .send({
             cashRegisterId,
-            initialAmount: 100,
+            initialBalance: 100,
           });
       }
     }

@@ -55,11 +55,39 @@ jobs:
           pnpm exec prisma migrate deploy
           pnpm prisma:seed
 
+      - name: Build Backend
+        working-directory: ./backend
+        run: pnpm build
+
+      - name: Start Backend API for Integration & E2E Suites
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://vivelite_user:ci_test_password_2026@localhost:5433/vivelite_db?schema=public
+          JWT_ACCESS_SECRET: ci-secret-key-12345-access-token-min32chars
+          JWT_REFRESH_SECRET: ci-secret-key-12345-refresh-token-min32chars
+          JWT_SECRET: ci-secret-key-12345
+          PORT: 4000
+          API_PREFIX: api/v1
+        run: |
+          node dist/main.js &
+          echo "Esperando que el backend esté listo en http://127.0.0.1:4000/api/v1/health..."
+          for i in $(seq 1 30); do
+            if curl -s http://127.0.0.1:4000/api/v1/health | grep -q "ok"; then
+              echo "Backend API activo y respondiendo exitosamente en el puerto 4000!"
+              break
+            fi
+            echo "Esperando backend ($i/30)..."
+            sleep 1
+          done
+
       - name: Run Backend Unit & Integration Tests with Coverage
         working-directory: ./backend
         env:
           DATABASE_URL: postgresql://vivelite_user:ci_test_password_2026@localhost:5433/vivelite_db?schema=public
+          JWT_ACCESS_SECRET: ci-secret-key-12345-access-token-min32chars
+          JWT_REFRESH_SECRET: ci-secret-key-12345-refresh-token-min32chars
           JWT_SECRET: ci-secret-key-12345
+          API_URL: http://127.0.0.1:4000/api/v1
         run: pnpm test:all:cov
 
       - name: Upload Backend Coverage Report
