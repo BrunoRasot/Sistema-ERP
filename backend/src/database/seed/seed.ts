@@ -20,12 +20,11 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log('Inicializando datos maestros y usuarios para Vivelite Ica...');
+  console.log('Inicializando datos maestros de producción para Vivelite (Únicamente Administrador)...');
 
+  // 1. Único usuario administrador del sistema
   const saltRounds = 10;
   const adminPassword = await bcrypt.hash('Admin123!', saltRounds);
-  const vendedorPassword = await bcrypt.hash('Vendedor123!', saltRounds);
-  const repartidorPassword = await bcrypt.hash('Repartidor123!', saltRounds);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@vivelite.pe' },
@@ -34,43 +33,16 @@ async function main() {
       email: 'admin@vivelite.pe',
       password: adminPassword,
       firstName: 'Administrador',
-      lastName: 'Ica',
+      lastName: 'Principal',
       phone: '+51 956 123 456',
       role: Role.SUPER_ADMIN,
       status: EntityStatus.ACTIVE,
     },
   });
 
-  const vendedor = await prisma.user.upsert({
-    where: { email: 'vendedor@vivelite.pe' },
-    update: {},
-    create: {
-      email: 'vendedor@vivelite.pe',
-      password: vendedorPassword,
-      firstName: 'Carlos',
-      lastName: 'Guadalupe',
-      phone: '+51 956 789 012',
-      role: Role.VENDEDOR,
-      status: EntityStatus.ACTIVE,
-    },
-  });
+  console.log(`Usuario único administrador verificado: ${admin.email} [${admin.role}]`);
 
-  const repartidor = await prisma.user.upsert({
-    where: { email: 'repartidor@vivelite.pe' },
-    update: {},
-    create: {
-      email: 'repartidor@vivelite.pe',
-      password: repartidorPassword,
-      firstName: 'Jorge',
-      lastName: 'Ruta Ica',
-      phone: '+51 956 345 678',
-      role: Role.REPARTIDOR,
-      status: EntityStatus.ACTIVE,
-    },
-  });
-
-  console.log(`Usuarios creados: Admin (${admin.email}), Vendedor (${vendedor.email})`);
-
+  // 2. Categorías oficiales
   const catAgua = await prisma.category.upsert({
     where: { name: 'Agua Purificada' },
     update: {},
@@ -89,6 +61,7 @@ async function main() {
     },
   });
 
+  // 3. Catálogo de productos oficial
   await prisma.product.upsert({
     where: { code: 'AGUA-REC-20L' },
     update: {},
@@ -100,8 +73,8 @@ async function main() {
       price: 15.00,
       cost: 4.50,
       unit: UnitOfMeasure.BIDON_20L,
-      stock: 350,
-      minStock: 30,
+      stock: 100,
+      minStock: 20,
       isReturnable: true,
     },
   });
@@ -111,14 +84,14 @@ async function main() {
     update: {},
     create: {
       code: 'AGUA-NUEVO-20L',
-      name: 'Bidón 20L Nuevo con Agua (Envase + Recarga)',
-      description: 'Envase retornable de policarbonato nuevo de 20L con agua de mesa',
+      name: 'Bidón 20L Nuevo con Agua',
+      description: 'Envase retornable nuevo con agua purificada',
       categoryId: catAgua.id,
       price: 45.00,
       cost: 22.00,
       unit: UnitOfMeasure.BIDON_20L,
-      stock: 120,
-      minStock: 20,
+      stock: 50,
+      minStock: 10,
       isReturnable: true,
     },
   });
@@ -129,13 +102,13 @@ async function main() {
     create: {
       code: 'AGUA-CAJA-20L',
       name: 'Caja de Agua 20 Litros Descartable',
-      description: 'Caja con bolsa y caño vertedor desechable, no requiere envase',
+      description: 'Caja desechable con bolsa y caño vertedor',
       categoryId: catAgua.id,
       price: 25.00,
       cost: 11.00,
       unit: UnitOfMeasure.CAJA,
-      stock: 80,
-      minStock: 15,
+      stock: 40,
+      minStock: 10,
       isReturnable: false,
     },
   });
@@ -146,17 +119,18 @@ async function main() {
     create: {
       code: 'DISP-BOMBA-ELEC',
       name: 'Bomba Eléctrica USB para Bidón',
-      description: 'Dispensador automático de agua recargable vía USB',
+      description: 'Dispensador automático de agua recargable USB',
       categoryId: catAccesorios.id,
       price: 35.00,
       cost: 16.00,
       unit: UnitOfMeasure.UNIDAD,
-      stock: 45,
-      minStock: 10,
+      stock: 20,
+      minStock: 5,
       isReturnable: false,
     },
   });
 
+  // 4. Caja física de atención
   await prisma.cashRegister.upsert({
     where: { name: 'Caja Principal Guadalupe' },
     update: {},
@@ -166,58 +140,32 @@ async function main() {
     },
   });
 
+  // 5. Cliente genérico para ventas rápidas de mostrador
   await prisma.customer.upsert({
-    where: { documentNumber: '45892134' },
+    where: { documentNumber: '00000000' },
     update: {},
     create: {
       documentType: 'DNI',
-      documentNumber: '45892134',
-      name: 'María Gonzales Silva',
-      phone: '956112233',
-      whatsapp: '956112233',
-      address: 'Av. Principal 124, Salas Guadalupe',
-      reference: 'A media cuadra de la Plaza de Armas de Guadalupe',
-      zone: 'Zona 2 - Ica Norte & Salas Guadalupe',
-      district: 'Salas - Guadalupe (Centro / Plaza)',
-      subchannel: 'HOGAR',
+      documentNumber: '00000000',
+      name: 'Clientes Varios / Mostrador',
+      phone: '000000000',
+      address: 'Venta Directa Mostrador',
+      subchannel: 'MOSTRADOR',
       customerType: CustomerType.HOGAR,
-      loyaltyTier: LoyaltyTier.PLATA,
-      bottlesHolding: 3,
-      creditLimit: 100.00,
+      loyaltyTier: LoyaltyTier.BRONCE,
+      bottlesHolding: 0,
+      creditLimit: 0.00,
       currentDebt: 0.00,
+      status: EntityStatus.ACTIVE,
     },
   });
 
-  await prisma.customer.upsert({
-    where: { documentNumber: '20601234567' },
-    update: {},
-    create: {
-      documentType: 'RUC',
-      documentNumber: '20601234567',
-      name: 'Agrícola Don Ricardo S.A.C.',
-      businessName: 'Agrícola Don Ricardo S.A.C.',
-      phone: '956998877',
-      whatsapp: '956998877',
-      email: 'compras@agricola.pe',
-      address: 'Carretera Panamericana Sur Km 295, Villacurí',
-      reference: 'Entrada Fundo Villacurí',
-      zone: 'Zona 2 - Ica Norte & Salas Guadalupe',
-      district: 'Villacurí (Salas)',
-      subchannel: 'EMPRESA / AGROEXPORTADORA',
-      customerType: CustomerType.EMPRESA,
-      loyaltyTier: LoyaltyTier.ORO,
-      bottlesHolding: 25,
-      creditLimit: 2500.00,
-      currentDebt: 300.00,
-    },
-  });
-
-  console.log('Seed de datos para Ica finalizado con éxito.');
+  console.log('Inicialización de producción finalizada con éxito (Cero datos simulados).');
 }
 
 main()
   .catch((e) => {
-    console.error('Error al ejecutar seed:', e);
+    console.error('Error al ejecutar seed de producción:', e);
     process.exit(1);
   })
   .finally(async () => {
