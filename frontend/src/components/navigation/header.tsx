@@ -1,9 +1,12 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Droplets, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { cashService } from '@/features/cash/services/cash-service';
 
 const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/': { title: 'Panel de Control Operativo', subtitle: 'Métricas en tiempo real y distribución' },
@@ -27,6 +30,13 @@ interface HeaderProps {
 export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
   const pathname = usePathname();
   const pageInfo = PAGE_TITLES[pathname] || { title: 'Vivelite', subtitle: 'Distribución Ica' };
+
+  const { data: activeShift } = useQuery({
+    queryKey: ['cash-active-shift'],
+    queryFn: () => cashService.getActiveShift(),
+  });
+
+  const isShiftOpen = activeShift && activeShift.status === 'ABIERTA';
 
   return (
     <header
@@ -59,10 +69,24 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/70 text-[11px] font-bold text-emerald-700 shadow-2xs">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span>Caja Abierta</span>
-        </div>
+        <Link
+          href="/sales"
+          title={isShiftOpen ? 'Caja abierta - Clic para ver arqueo' : 'Caja cerrada - Clic para abrir turno'}
+          className={cn(
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold shadow-2xs transition-all hover:scale-105',
+            isShiftOpen
+              ? 'bg-emerald-50 border-emerald-200/70 text-emerald-700 hover:bg-emerald-100/60'
+              : 'bg-amber-50 border-amber-200/70 text-amber-700 hover:bg-amber-100/60',
+          )}
+        >
+          <span
+            className={cn(
+              'w-1.5 h-1.5 rounded-full',
+              isShiftOpen ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500',
+            )}
+          />
+          <span>{isShiftOpen ? 'Caja Abierta' : 'Caja Cerrada'}</span>
+        </Link>
 
         <button
           title="Notificaciones"
