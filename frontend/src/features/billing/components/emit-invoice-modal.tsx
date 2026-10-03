@@ -39,7 +39,7 @@ export function EmitInvoiceModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (invoiceType === 'FACTURA' && (!isCompany || sale.customer.documentNumber.length !== 11)) {
+    if (invoiceType === 'FACTURA' && (!isCompany || sale.customer?.documentNumber?.length !== 11)) {
       setErrorMessage(
         'Para emitir una Factura Electrónica, el cliente debe contar con RUC válido de 11 dígitos.',
       );
@@ -70,9 +70,9 @@ export function EmitInvoiceModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Emitir Comprobante SUNAT"
-      description={sale.saleNumber}
-      icon={<Receipt className="w-5 h-5" />}
-      iconColor="bg-blue-50 text-blue-600"
+      description={`Ticket de Venta: ${sale.saleNumber}`}
+      icon={<Receipt className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -91,7 +91,7 @@ export function EmitInvoiceModal({
                 {sale.customer?.documentType || 'DNI'}: {sale.customer?.documentNumber || '00000000'}
               </p>
             </div>
-            <span className="font-black text-sm text-blue-700">
+            <span className="font-black text-sm text-slate-900">
               {formatCurrency(sale.total)}
             </span>
           </div>
@@ -102,40 +102,46 @@ export function EmitInvoiceModal({
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <label className="block text-xs font-semibold text-slate-700">Tipo de Comprobante:</label>
           <div className="grid grid-cols-2 gap-2">
-            <Button
+            <button
               type="button"
-              variant={invoiceType === 'BOLETA' ? 'primary' : 'outline'}
               onClick={() => setInvoiceType('BOLETA')}
-              className="h-auto p-3 flex flex-col items-start gap-1 justify-between text-left"
+              className={`p-3 rounded-2xl border flex flex-col items-start gap-1 justify-between text-left transition ${
+                invoiceType === 'BOLETA'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
             >
               <div className="flex items-center justify-between w-full">
                 <User className="w-4 h-4" />
-                <span className="text-[10px] font-bold opacity-75">B001</span>
+                <span className={`text-[10px] font-bold ${invoiceType === 'BOLETA' ? 'text-slate-300' : 'text-slate-400'}`}>B001</span>
               </div>
               <div className="mt-1">
-                <p className="font-bold">Boleta</p>
-                <p className="text-[10px] opacity-75 font-normal">Consumidor final</p>
+                <p className="font-bold text-xs">Boleta</p>
+                <p className={`text-[10px] font-normal ${invoiceType === 'BOLETA' ? 'text-slate-300' : 'text-slate-500'}`}>Consumidor final (DNI)</p>
               </div>
-            </Button>
+            </button>
 
-            <Button
+            <button
               type="button"
-              variant={invoiceType === 'FACTURA' ? 'primary' : 'outline'}
               onClick={() => setInvoiceType('FACTURA')}
-              className="h-auto p-3 flex flex-col items-start gap-1 justify-between text-left"
+              className={`p-3 rounded-2xl border flex flex-col items-start gap-1 justify-between text-left transition ${
+                invoiceType === 'FACTURA'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+              }`}
             >
               <div className="flex items-center justify-between w-full">
                 <Building2 className="w-4 h-4" />
-                <span className="text-[10px] font-bold opacity-75">F001</span>
+                <span className={`text-[10px] font-bold ${invoiceType === 'FACTURA' ? 'text-slate-300' : 'text-slate-400'}`}>F001</span>
               </div>
               <div className="mt-1">
-                <p className="font-bold">Factura</p>
-                <p className="text-[10px] opacity-75 font-normal">Empresas con RUC</p>
+                <p className="font-bold text-xs">Factura</p>
+                <p className={`text-[10px] font-normal ${invoiceType === 'FACTURA' ? 'text-slate-300' : 'text-slate-500'}`}>Empresas con RUC 11 dígitos</p>
               </div>
-            </Button>
+            </button>
           </div>
         </div>
 
@@ -160,9 +166,9 @@ export function EmitInvoiceModal({
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Send className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Emitir a SUNAT
+            {isLoading ? 'Emitiendo a SUNAT...' : 'Emitir Comprobante'}
           </Button>
         </div>
       </form>

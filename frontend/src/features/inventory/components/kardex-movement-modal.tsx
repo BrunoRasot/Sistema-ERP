@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Boxes, Check, ArrowUpRight, ArrowDownRight, RefreshCw } from 'lucide-react';
+import { Boxes, Check, ArrowUpRight, ArrowDownRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { Product } from '@/features/products/types/product';
 import { InventoryMovementType } from '../types/inventory';
 import { inventoryService } from '../services/inventory-service';
@@ -23,6 +23,7 @@ export function KardexMovementModal({
   const [movementType, setMovementType] = useState<InventoryMovementType>('ENTRADA');
   const [quantity, setQuantity] = useState<number>(10);
   const [reason, setReason] = useState<string>('Ingreso de producción purificada diaria');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,20 +38,38 @@ export function KardexMovementModal({
 
   const handleTypeChange = (type: InventoryMovementType) => {
     setMovementType(type);
+    setFieldErrors({});
     if (type === 'ENTRADA') {
       setReason('Ingreso de producción purificada en planta');
-    } else if (type === 'MERMA') {
+    } else if (type === 'SALIDA' || type === 'MERMA') {
       setReason('Envase fisurado o merma en planta');
     } else if (type === 'AJUSTE') {
       setReason('Ajuste por conteo físico de inventario');
       setQuantity(product.stock);
-    } else {
-      setReason('Salida manual de almacén');
     }
+  };
+
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (isNaN(quantity) || quantity <= 0) {
+      errs.quantity = 'La cantidad debe ser un número entero mayor a 0.';
+    }
+
+    if (!reason.trim()) {
+      errs.reason = 'El motivo u observación es obligatorio.';
+    } else if (reason.trim().length < 3) {
+      errs.reason = 'El motivo debe tener al menos 3 caracteres.';
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setIsLoading(true);
     setError(null);
 
@@ -59,7 +78,7 @@ export function KardexMovementModal({
         productId: product.id,
         movementType,
         quantity: Number(quantity),
-        reason: reason.trim() || 'Ajuste de inventario',
+        reason: reason.trim(),
       });
       onSuccess();
       onClose();
@@ -76,14 +95,15 @@ export function KardexMovementModal({
       onClose={onClose}
       title="Ajuste de Kardex e Inventario"
       description={`${product.code} — ${product.name}`}
-      icon={<Boxes className="w-5 h-5" />}
-      iconColor="bg-blue-50 text-blue-600"
+      icon={<Boxes className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-medium">
-            {error}
+          <div className="p-3 text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -96,7 +116,7 @@ export function KardexMovementModal({
             <span className="text-xs text-slate-500 font-medium block">Stock Resultante</span>
             <span
               className={`text-xl font-black ${
-                projectedStock < (product.minStock || 10) ? 'text-amber-600' : 'text-emerald-600'
+                projectedStock < (product.minStock || 10) ? 'text-amber-800' : 'text-slate-900'
               }`}
             >
               {projectedStock} un.
@@ -105,33 +125,42 @@ export function KardexMovementModal({
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <Button
+          <button
             type="button"
-            variant={movementType === 'ENTRADA' ? 'success' : 'outline'}
             onClick={() => handleTypeChange('ENTRADA')}
-            leftIcon={<ArrowUpRight className="w-4 h-4" />}
-            className="w-full text-xs"
+            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              movementType === 'ENTRADA'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            Entrada
-          </Button>
-          <Button
+            <ArrowUpRight className="w-4 h-4" />
+            <span>Entrada</span>
+          </button>
+          <button
             type="button"
-            variant={movementType === 'SALIDA' ? 'danger' : 'outline'}
             onClick={() => handleTypeChange('SALIDA')}
-            leftIcon={<ArrowDownRight className="w-4 h-4" />}
-            className="w-full text-xs"
+            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              movementType === 'SALIDA'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            Salida
-          </Button>
-          <Button
+            <ArrowDownRight className="w-4 h-4" />
+            <span>Salida</span>
+          </button>
+          <button
             type="button"
-            variant={movementType === 'AJUSTE' ? 'primary' : 'outline'}
             onClick={() => handleTypeChange('AJUSTE')}
-            leftIcon={<RefreshCw className="w-4 h-4" />}
-            className="w-full text-xs"
+            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+              movementType === 'AJUSTE'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            Ajuste
-          </Button>
+            <RefreshCw className="w-4 h-4" />
+            <span>Ajuste</span>
+          </button>
         </div>
 
         <Input
@@ -140,20 +169,28 @@ export function KardexMovementModal({
           min="1"
           required
           value={quantity}
-          onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
-          className="text-center text-lg font-black"
+          onChange={(e) => {
+            setQuantity(parseInt(e.target.value) || 0);
+            if (fieldErrors.quantity) setFieldErrors((prev) => ({ ...prev, quantity: '' }));
+          }}
+          className="text-center text-xl font-black text-slate-900"
+          error={fieldErrors.quantity}
         />
 
         <Input
-          label="Motivo / Justificación del Movimiento"
+          label="Motivo u Observación del Movimiento"
           type="text"
           required
           value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          placeholder="Ej: Lote de producción terminado, merma por rotura"
+          onChange={(e) => {
+            setReason(e.target.value);
+            if (fieldErrors.reason) setFieldErrors((prev) => ({ ...prev, reason: '' }));
+          }}
+          placeholder="Ej: Ingreso de producción por lote 2026-A"
+          error={fieldErrors.reason}
         />
 
-        <div className="pt-3 flex items-center gap-3">
+        <div className="pt-2 flex items-center gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="w-1/2">
             Cancelar
           </Button>
@@ -162,9 +199,9 @@ export function KardexMovementModal({
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Registrar Movimiento
+            {isLoading ? 'Registrando...' : 'Confirmar Movimiento'}
           </Button>
         </div>
       </form>

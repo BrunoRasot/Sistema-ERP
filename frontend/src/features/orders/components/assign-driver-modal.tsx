@@ -28,7 +28,7 @@ export function AssignDriverModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedDriverId) {
-      setErrorMessage('Seleccione un repartidor');
+      setErrorMessage('Seleccione un repartidor para asignar la orden.');
       return;
     }
 
@@ -51,9 +51,9 @@ export function AssignDriverModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Asignar Repartidor"
-      description={order.orderNumber}
-      icon={<Truck className="w-5 h-5" />}
-      iconColor="bg-blue-50 text-blue-600"
+      description={`Pedido N°: ${order.orderNumber}`}
+      icon={<Truck className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,10 +72,13 @@ export function AssignDriverModal({
         <Select
           label="Repartidor Asignado"
           value={selectedDriverId}
-          onChange={(e) => setSelectedDriverId(e.target.value)}
+          onChange={(e) => {
+            setSelectedDriverId(e.target.value);
+            if (errorMessage) setErrorMessage(null);
+          }}
           required
         >
-          <option value="">-- Seleccionar Chofer --</option>
+          <option value="">-- Seleccionar Repartidor --</option>
           {drivers.map((d) => (
             <option key={d.id} value={d.id}>
               {d.firstName} {d.lastName} {d.phone ? `(${d.phone})` : ''}
@@ -92,9 +95,9 @@ export function AssignDriverModal({
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Asignar
+            {isLoading ? 'Asignando...' : 'Asignar'}
           </Button>
         </div>
       </form>

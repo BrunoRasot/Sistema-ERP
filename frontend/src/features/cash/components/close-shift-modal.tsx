@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Wallet, Check } from 'lucide-react';
+import { Wallet, Check, AlertCircle } from 'lucide-react';
 import { CashShift } from '../types/cash';
 import { cashService } from '../services/cash-service';
 import { formatCurrency } from '@/lib/utils';
@@ -23,13 +23,25 @@ export function CloseShiftModal({
   const expectedCash = shift.summary?.expectedCashInBox || Number(shift.initialBalance);
   const [actualBalance, setActualBalance] = useState<number>(expectedCash);
   const [notes, setNotes] = useState<string>('Arqueo conforme al cierre');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const difference = actualBalance - expectedCash;
 
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (isNaN(actualBalance) || actualBalance < 0) {
+      errs.actualBalance = 'Ingrese un monto válido contado en caja (>= 0).';
+    }
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setIsLoading(true);
     setError(null);
 
@@ -53,14 +65,15 @@ export function CloseShiftModal({
       onClose={onClose}
       title="Cierre de Caja y Arqueo"
       description="Conciliación de efectivo físico al fin de turno"
-      icon={<Wallet className="w-5 h-5" />}
-      iconColor="bg-slate-100 text-slate-700"
+      icon={<Wallet className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-medium">
-            {error}
+          <div className="p-3 text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
 
@@ -92,23 +105,27 @@ export function CloseShiftModal({
           step="0.5"
           required
           value={actualBalance}
-          onChange={(e) => setActualBalance(parseFloat(e.target.value) || 0)}
-          className="text-center text-xl font-black"
+          onChange={(e) => {
+            setActualBalance(parseFloat(e.target.value) || 0);
+            if (fieldErrors.actualBalance) setFieldErrors((prev) => ({ ...prev, actualBalance: '' }));
+          }}
+          className="text-center text-xl font-black text-slate-900"
+          error={fieldErrors.actualBalance}
         />
 
         <div
           className={`p-3 rounded-xl border text-xs flex items-center justify-between font-semibold ${
             difference === 0
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              ? 'bg-slate-900 text-white border-slate-900'
               : difference > 0
-              ? 'bg-blue-50 text-blue-800 border-blue-200'
+              ? 'bg-slate-100 text-slate-800 border-slate-300'
               : 'bg-rose-50 text-rose-800 border-rose-200'
           }`}
         >
           <span>Diferencia de Arqueo:</span>
           <span className="font-black text-sm">
             {difference === 0
-              ? 'S/ 0.00 (Cuadrado)'
+              ? 'S/ 0.00 (Cuadrado exacto)'
               : difference > 0
               ? `+${formatCurrency(difference)} (Sobrante)`
               : `${formatCurrency(difference)} (Faltante)`}
@@ -123,7 +140,7 @@ export function CloseShiftModal({
           placeholder="Ej: Billetes revisados sin novedad"
         />
 
-        <div className="pt-3 flex items-center gap-3">
+        <div className="pt-2 flex items-center gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="w-1/2">
             Cancelar
           </Button>
@@ -132,9 +149,9 @@ export function CloseShiftModal({
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Confirmar Cierre
+            {isLoading ? 'Cerrando turno...' : 'Confirmar Cierre'}
           </Button>
         </div>
       </form>

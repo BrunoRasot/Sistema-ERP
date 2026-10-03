@@ -35,7 +35,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               'w-full h-10 pl-3.5 pr-10 py-2 text-sm rounded-xl border bg-white appearance-none transition-all focus:outline-none focus:ring-2 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed',
               error
                 ? 'border-rose-300 text-rose-900 focus:border-rose-500 focus:ring-rose-500/20'
-                : 'border-slate-200 text-slate-900 focus:border-blue-600 focus:ring-blue-500/20 hover:border-slate-300',
+                : 'border-slate-200 text-slate-900 focus:border-slate-900 focus:ring-slate-900/10 hover:border-slate-300',
               className,
             )}
             {...props}

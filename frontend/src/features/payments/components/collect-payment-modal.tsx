@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   DollarSign,
   AlertCircle,
+  Check,
 } from 'lucide-react';
 import { ReceivableSale } from '../types/payment';
 import { paymentService } from '../services/payment-service';
@@ -32,16 +33,31 @@ export function CollectPaymentModal({
   const [operationCode, setOperationCode] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [receiptResult, setReceiptResult] = useState<any | null>(null);
 
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (isNaN(amount) || amount <= 0) {
+      errs.amount = 'El monto a cobrar debe ser mayor a 0.';
+    } else if (amount > maxBalance) {
+      errs.amount = `El monto no puede superar la deuda pendiente (${formatCurrency(maxBalance)}).`;
+    }
+
+    if (paymentMethod !== 'EFECTIVO' && !operationCode.trim()) {
+      errs.operationCode = 'Ingrese el código o número de operación.';
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount <= 0 || amount > maxBalance) {
-      setErrorMessage(`El monto debe ser entre S/ 0.10 y S/ ${maxBalance.toFixed(2)}`);
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
     setErrorMessage(null);
@@ -71,10 +87,10 @@ export function CollectPaymentModal({
         setReceiptResult(null);
         onClose();
       }}
-      title={receiptResult ? '¡Abono Registrado Exitosamente!' : 'Registrar Cobro'}
+      title={receiptResult ? '¡Abono Registrado Exitosamente!' : 'Registrar Cobro de Venta'}
       description={receiptResult ? `Comprobante: ${receiptResult.saleNumber}` : sale.saleNumber}
-      icon={receiptResult ? <CheckCircle2 className="w-5 h-5" /> : <Wallet className="w-5 h-5" />}
-      iconColor={receiptResult ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}
+      icon={receiptResult ? <CheckCircle2 className="w-5 h-5 text-slate-800" /> : <Wallet className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="sm"
     >
       {receiptResult ? (
@@ -86,19 +102,19 @@ export function CollectPaymentModal({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-slate-500">Monto Cobrado:</span>
-              <span className="font-black text-emerald-600 text-sm">
+              <span className="font-black text-slate-900 text-sm">
                 {formatCurrency(receiptResult.amountCollected)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Medio de Pago:</span>
-              <span className="font-semibold text-blue-600">{paymentMethod}</span>
+              <span className="font-semibold text-slate-800">{paymentMethod}</span>
             </div>
             <div className="pt-2 border-t border-slate-200 flex justify-between items-center">
               <span className="text-slate-500">Saldo Restante:</span>
               <span
                 className={`font-black ${
-                  receiptResult.newBalanceDue === 0 ? 'text-emerald-700' : 'text-rose-600'
+                  receiptResult.newBalanceDue === 0 ? 'text-slate-900' : 'text-rose-600'
                 }`}
               >
                 {receiptResult.newBalanceDue === 0
@@ -115,7 +131,7 @@ export function CollectPaymentModal({
               setReceiptResult(null);
               onClose();
             }}
-            className="w-full"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white"
           >
             Cerrar
           </Button>
@@ -135,28 +151,55 @@ export function CollectPaymentModal({
               {sale.customer.documentType}: {sale.customer.documentNumber} · Cel: {sale.customer.phone}
             </p>
             <div className="flex justify-between items-center pt-2 mt-1 border-t border-slate-200 text-xs">
-              <span className="text-slate-500 font-medium">Deuda Pendiente:</span>
+              <span className="text-slate-500 font-medium">Deuda Pendiente Total:</span>
               <span className="font-black text-rose-600">{formatCurrency(maxBalance)}</span>
             </div>
           </div>
 
-          <Input
-            label="Monto a Cobrar (S/)"
-            type="number"
-            min="0.10"
-            max={maxBalance}
-            step="0.10"
-            required
-            value={amount}
-            onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-            className="text-center text-lg font-black text-emerald-700"
-            leftIcon={<DollarSign className="w-4 h-4" />}
-          />
+          <div>
+            <Input
+              label="Monto a Cobrar (S/)"
+              type="number"
+              min="0.10"
+              max={maxBalance}
+              step="0.10"
+              required
+              value={amount}
+              onChange={(e) => {
+                setAmount(parseFloat(e.target.value) || 0);
+                if (fieldErrors.amount) setFieldErrors((prev) => ({ ...prev, amount: '' }));
+              }}
+              className="text-center text-xl font-black text-slate-900"
+              leftIcon={<DollarSign className="w-4 h-4" />}
+              error={fieldErrors.amount}
+            />
+
+            {/* Accesos rápidos de monto */}
+            <div className="grid grid-cols-2 gap-1.5 pt-1.5">
+              <button
+                type="button"
+                onClick={() => setAmount(Number((maxBalance / 2).toFixed(2)))}
+                className="py-1 text-xs font-bold rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition"
+              >
+                50% ({formatCurrency(maxBalance / 2)})
+              </button>
+              <button
+                type="button"
+                onClick={() => setAmount(maxBalance)}
+                className="py-1 text-xs font-bold rounded-lg border border-slate-900 bg-slate-900 text-white shadow-xs transition"
+              >
+                100% Total ({formatCurrency(maxBalance)})
+              </button>
+            </div>
+          </div>
 
           <Select
             label="Medio de Pago"
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+            onChange={(e) => {
+              setPaymentMethod(e.target.value as PaymentMethod);
+              if (fieldErrors.operationCode) setFieldErrors((prev) => ({ ...prev, operationCode: '' }));
+            }}
             options={[
               { value: 'EFECTIVO', label: 'Efectivo (Caja Física)' },
               { value: 'YAPE', label: 'Yape' },
@@ -170,9 +213,14 @@ export function CollectPaymentModal({
             <Input
               label="N° Operación / Referencia"
               type="text"
+              required
               value={operationCode}
-              onChange={(e) => setOperationCode(e.target.value)}
+              onChange={(e) => {
+                setOperationCode(e.target.value);
+                if (fieldErrors.operationCode) setFieldErrors((prev) => ({ ...prev, operationCode: '' }));
+              }}
               placeholder="Ej: Op. 849204"
+              error={fieldErrors.operationCode}
             />
           )}
 
@@ -181,7 +229,7 @@ export function CollectPaymentModal({
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ej: Pago parcial acordado"
+            placeholder="Ej: Abono acordado con cliente"
           />
 
           <div className="pt-2 flex items-center gap-3">
@@ -192,9 +240,10 @@ export function CollectPaymentModal({
               type="submit"
               variant="primary"
               isLoading={isLoading}
-              className="w-1/2"
+              leftIcon={<Check className="w-4 h-4" />}
+              className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
             >
-              Registrar Cobro
+              {isLoading ? 'Cobrando...' : 'Registrar Cobro'}
             </Button>
           </div>
         </form>

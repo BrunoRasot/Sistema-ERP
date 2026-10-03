@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UserPlus, Check, Home, Building2 } from 'lucide-react';
+import { UserPlus, Check, Home, Building2, AlertCircle } from 'lucide-react';
 import { CreateCustomerInput, CustomerType, DocumentType } from '../types/customer';
 import { customerService } from '../services/customer-service';
 import { Modal, Button, Input, Select } from '@/components/ui';
@@ -32,11 +32,13 @@ export function CreateCustomerModal({
   const [creditLimit, setCreditLimit] = useState<number>(0);
   const [notes, setNotes] = useState('');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   const handleCustomerTypeChange = (type: CustomerType) => {
     setCustomerType(type);
+    setFieldErrors({});
     if (type === 'EMPRESA') {
       setDocumentType('RUC');
       setSubchannel('EMPRESA');
@@ -46,10 +48,72 @@ export function CreateCustomerModal({
     }
   };
 
+  const handleDocumentNumberChange = (val: string) => {
+    let clean = val.replace(/\D/g, '');
+    if (documentType === 'DNI') clean = clean.slice(0, 8);
+    else if (documentType === 'RUC') clean = clean.slice(0, 11);
+    else clean = clean.slice(0, 15);
+    setDocumentNumber(clean);
+    if (fieldErrors.documentNumber) {
+      setFieldErrors((prev) => ({ ...prev, documentNumber: '' }));
+    }
+  };
+
+  const handlePhoneChange = (val: string) => {
+    const clean = val.replace(/\D/g, '').slice(0, 9);
+    setPhone(clean);
+    if (!whatsapp) setWhatsapp(clean);
+    if (fieldErrors.phone) {
+      setFieldErrors((prev) => ({ ...prev, phone: '' }));
+    }
+  };
+
+  const handleWhatsappChange = (val: string) => {
+    const clean = val.replace(/\D/g, '').slice(0, 9);
+    setWhatsapp(clean);
+  };
+
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (!documentNumber.trim()) {
+      errs.documentNumber = 'El número de documento es obligatorio.';
+    } else if (documentType === 'DNI' && documentNumber.trim().length !== 8) {
+      errs.documentNumber = 'El DNI debe contener exactamente 8 dígitos.';
+    } else if (documentType === 'RUC' && documentNumber.trim().length !== 11) {
+      errs.documentNumber = 'El RUC debe contener exactamente 11 dígitos.';
+    }
+
+    if (!name.trim()) {
+      errs.name = customerType === 'EMPRESA' ? 'La Razón Social es requerida.' : 'El Nombre Completo es requerido.';
+    } else if (name.trim().length < 3) {
+      errs.name = 'Debe tener al menos 3 caracteres.';
+    }
+
+    if (!phone.trim()) {
+      errs.phone = 'El teléfono de contacto es obligatorio.';
+    } else if (phone.trim().length !== 9) {
+      errs.phone = 'El teléfono debe tener 9 dígitos.';
+    }
+
+    if (!address.trim()) {
+      errs.address = 'La dirección de despacho es obligatoria.';
+    }
+
+    if (creditLimit < 0) {
+      errs.creditLimit = 'El límite de crédito no puede ser negativo.';
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setIsLoading(true);
-    setError(null);
+    setGeneralError(null);
 
     const payload: CreateCustomerInput = {
       customerType,
@@ -73,7 +137,7 @@ export function CreateCustomerModal({
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err?.message || 'Error al registrar el cliente');
+      setGeneralError(err?.message || 'Error al registrar el cliente');
     } finally {
       setIsLoading(false);
     }
@@ -85,157 +149,206 @@ export function CreateCustomerModal({
       onClose={onClose}
       title="Nuevo Cliente"
       description="Registrar ficha de cliente para despacho y facturación"
-      icon={<UserPlus className="w-5 h-5" />}
-      iconColor="bg-blue-50 text-blue-600"
+      icon={<UserPlus className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-medium">
-            {error}
+        {generalError && (
+          <div className="p-3 text-xs bg-rose-50 text-rose-700 border border-rose-200 rounded-xl font-medium flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{generalError}</span>
           </div>
         )}
 
+        {/* 1. Selector de Tipo de Cliente */}
         <div className="grid grid-cols-2 gap-2">
-          <Button
+          <button
             type="button"
-            variant={customerType === 'HOGAR' ? 'primary' : 'outline'}
             onClick={() => handleCustomerTypeChange('HOGAR')}
-            leftIcon={<Home className="w-4 h-4" />}
-            className="w-full"
+            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
+              customerType === 'HOGAR'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            Hogar / Persona
-          </Button>
-          <Button
+            <Home className="w-4 h-4" />
+            <span>Hogar / Persona</span>
+          </button>
+          <button
             type="button"
-            variant={customerType === 'EMPRESA' ? 'primary' : 'outline'}
             onClick={() => handleCustomerTypeChange('EMPRESA')}
-            leftIcon={<Building2 className="w-4 h-4" />}
-            className="w-full"
+            className={`py-2 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2 ${
+              customerType === 'EMPRESA'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            Empresa / RUC
-          </Button>
+            <Building2 className="w-4 h-4" />
+            <span>Empresa / RUC</span>
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Select
-            label="Tipo Doc."
-            value={documentType}
-            onChange={(e) => setDocumentType(e.target.value as DocumentType)}
-            options={[
-              { value: 'DNI', label: 'DNI' },
-              { value: 'RUC', label: 'RUC' },
-              { value: 'CE', label: 'C.E.' },
-              { value: 'OTRO', label: 'Otro' },
-            ]}
+        {/* 2. Identificación */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            1. Identificación
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Select
+              label="Tipo Documento"
+              value={documentType}
+              onChange={(e) => {
+                const nextType = e.target.value as DocumentType;
+                setDocumentType(nextType);
+                setDocumentNumber('');
+                setFieldErrors((prev) => ({ ...prev, documentNumber: '' }));
+              }}
+              options={[
+                { value: 'DNI', label: 'DNI (8 dígitos)' },
+                { value: 'RUC', label: 'RUC (11 dígitos)' },
+                { value: 'CE', label: 'C.E. (Extranjería)' },
+                { value: 'OTRO', label: 'Otro' },
+              ]}
+            />
+            <div className="sm:col-span-2">
+              <Input
+                label={documentType === 'RUC' ? 'Número de RUC (11 dígitos)' : 'Número de Documento'}
+                type="text"
+                required
+                value={documentNumber}
+                onChange={(e) => handleDocumentNumberChange(e.target.value)}
+                placeholder={documentType === 'RUC' ? '20601234567' : '45892134'}
+                error={fieldErrors.documentNumber}
+              />
+            </div>
+          </div>
+
+          <Input
+            label={customerType === 'EMPRESA' ? 'Razón Social' : 'Nombre Completo'}
+            type="text"
+            required
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (fieldErrors.name) setFieldErrors((prev) => ({ ...prev, name: '' }));
+            }}
+            placeholder={customerType === 'EMPRESA' ? 'Ej: Distribuidora Los Pinos S.A.C.' : 'Ej: Juan Carlos Pérez Gómez'}
+            error={fieldErrors.name}
           />
-          <div className="sm:col-span-2">
+        </div>
+
+        {/* 3. Contacto */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            2. Contacto
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              label={documentType === 'RUC' ? 'Número de RUC (11 dígitos)' : 'Número de Documento'}
-              type="text"
+              label="Teléfono Principal (Celular)"
+              type="tel"
               required
-              value={documentNumber}
-              onChange={(e) => setDocumentNumber(e.target.value)}
-              placeholder={documentType === 'RUC' ? '20601234567' : '45892134'}
+              value={phone}
+              onChange={(e) => handlePhoneChange(e.target.value)}
+              placeholder="987654321"
+              error={fieldErrors.phone}
+            />
+            <Input
+              label="WhatsApp (Comprobantes / Despacho)"
+              type="tel"
+              value={whatsapp}
+              onChange={(e) => handleWhatsappChange(e.target.value)}
+              placeholder="987654321"
             />
           </div>
         </div>
 
-        <Input
-          label={customerType === 'EMPRESA' ? 'Razón Social' : 'Nombre Completo'}
-          type="text"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Ej: Distribuidora Los Pinos S.A.C."
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* 4. Logística y Despacho */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            3. Ubicación y Entrega
+          </h4>
           <Input
-            label="Teléfono Principal"
-            type="tel"
+            label="Dirección de Despacho"
+            type="text"
             required
-            value={phone}
+            value={address}
             onChange={(e) => {
-              setPhone(e.target.value);
-              if (!whatsapp) setWhatsapp(e.target.value);
+              setAddress(e.target.value);
+              if (fieldErrors.address) setFieldErrors((prev) => ({ ...prev, address: '' }));
             }}
-            placeholder="987654321"
+            placeholder="Av. Principal 123, Urb. Los Jardines"
+            error={fieldErrors.address}
           />
+
           <Input
-            label="WhatsApp (Facturas)"
-            type="tel"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            placeholder="987654321"
+            label="Referencia para Repartidor"
+            type="text"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            placeholder="Ej: Portón verde, frente a la farmacia"
+          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Input
+              label="Zona"
+              type="text"
+              value={zone}
+              onChange={(e) => setZone(e.target.value)}
+              placeholder="Ej: Zona 1 - Centro"
+            />
+            <Input
+              label="Distrito"
+              type="text"
+              value={district}
+              onChange={(e) => setDistrict(e.target.value)}
+              placeholder="Ej: Ica Cercado"
+            />
+            <Select
+              label="Sub Canal"
+              value={subchannel}
+              onChange={(e) => setSubchannel(e.target.value)}
+              options={[
+                { value: 'HOGAR', label: 'Hogar' },
+                { value: 'EMPRESA', label: 'Empresa' },
+                { value: 'BODEGA', label: 'Bodega' },
+                { value: 'DELIVERY', label: 'Delivery' },
+                { value: 'WHATSAPP', label: 'WhatsApp' },
+                { value: 'MOSTRADOR', label: 'Mostrador' },
+              ]}
+            />
+          </div>
+        </div>
+
+        {/* 5. Condiciones Comerciales */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            4. Condiciones Comerciales
+          </h4>
+          <Input
+            label="Límite de Crédito Autorizado (S/)"
+            type="number"
+            min="0"
+            step="10"
+            value={creditLimit}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value) || 0;
+              setCreditLimit(val);
+              if (fieldErrors.creditLimit) setFieldErrors((prev) => ({ ...prev, creditLimit: '' }));
+            }}
+            error={fieldErrors.creditLimit}
+          />
+
+          <Input
+            label="Notas Adicionales"
+            type="text"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Ej: Solicitar factura física al entregar"
           />
         </div>
 
-        <Input
-          label="Dirección de Despacho"
-          type="text"
-          required
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          placeholder="Av. Principal 123, Urb. Los Jardines"
-        />
-
-        <Input
-          label="Referencia para Repartidor"
-          type="text"
-          value={reference}
-          onChange={(e) => setReference(e.target.value)}
-          placeholder="Ej: Portón verde, timbre blanco, 2do piso"
-        />
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <Input
-            label="Zona"
-            type="text"
-            value={zone}
-            onChange={(e) => setZone(e.target.value)}
-            placeholder="Ej: Zona 1"
-          />
-          <Input
-            label="Distrito"
-            type="text"
-            value={district}
-            onChange={(e) => setDistrict(e.target.value)}
-            placeholder="Ej: Los Olivos"
-          />
-          <Select
-            label="Sub Canal"
-            value={subchannel}
-            onChange={(e) => setSubchannel(e.target.value)}
-            options={[
-              { value: 'HOGAR', label: 'Hogar' },
-              { value: 'EMPRESA', label: 'Empresa' },
-              { value: 'BODEGA', label: 'Bodega' },
-              { value: 'DELIVERY', label: 'Delivery' },
-              { value: 'WHATSAPP', label: 'WhatsApp' },
-              { value: 'MOSTRADOR', label: 'Mostrador' },
-            ]}
-          />
-        </div>
-
-        <Input
-          label="Límite de Crédito Autorizado (S/)"
-          type="number"
-          min="0"
-          step="10"
-          value={creditLimit}
-          onChange={(e) => setCreditLimit(parseFloat(e.target.value) || 0)}
-        />
-
-        <Input
-          label="Notas u Observaciones"
-          type="text"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Ej: Llamar antes de llegar"
-        />
-
-        <div className="pt-3 flex items-center gap-3">
+        <div className="pt-2 flex items-center gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="w-1/2">
             Cancelar
           </Button>
@@ -244,9 +357,9 @@ export function CreateCustomerModal({
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Guardar Cliente
+            {isLoading ? 'Guardando...' : 'Guardar Cliente'}
           </Button>
         </div>
       </form>

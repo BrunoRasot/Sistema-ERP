@@ -14,7 +14,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
 
     return (
       <div className={cn('relative w-full group', className)}>
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 group-focus-within:text-slate-900 transition-colors">
           <Search className="w-4 h-4" />
         </div>
 
@@ -24,7 +24,7 @@ export const SearchInput = React.forwardRef<HTMLInputElement, SearchInputProps>(
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
-          className="w-full h-10 pl-10 pr-9 py-2 text-sm rounded-xl border border-slate-200 bg-white placeholder:text-slate-400 text-slate-900 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 hover:border-slate-300"
+          className="w-full h-10 pl-10 pr-9 py-2 text-sm rounded-xl border border-slate-200 bg-white placeholder:text-slate-400 text-slate-900 transition-all focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-900 hover:border-slate-300"
           {...props}
         />
 

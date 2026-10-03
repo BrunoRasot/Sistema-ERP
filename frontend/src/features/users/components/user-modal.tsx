@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Shield, User, Mail, Lock, Phone, Check } from 'lucide-react';
+import { UserPlus, Shield, User, Mail, Lock, Phone, Check, AlertCircle } from 'lucide-react';
 import { SystemUser, UserRole, UserStatus } from '../types/user';
 import { userService } from '../services/user-service';
 import { Modal, Button, Input, Select } from '@/components/ui';
@@ -24,8 +24,9 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
   const [role, setRole] = useState<UserRole>('VENDEDOR');
   const [status, setStatus] = useState<UserStatus>('ACTIVE');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   useEffect(() => {
     if (userToEdit) {
@@ -45,12 +46,55 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
       setRole('VENDEDOR');
       setStatus('ACTIVE');
     }
-    setError(null);
+    setFieldErrors({});
+    setGeneralError(null);
   }, [userToEdit, isOpen]);
+
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (!firstName.trim()) {
+      errs.firstName = 'El nombre es obligatorio.';
+    } else if (firstName.trim().length < 2) {
+      errs.firstName = 'El nombre debe tener al menos 2 caracteres.';
+    }
+
+    if (!lastName.trim()) {
+      errs.lastName = 'El apellido es obligatorio.';
+    } else if (lastName.trim().length < 2) {
+      errs.lastName = 'El apellido debe tener al menos 2 caracteres.';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      errs.email = 'El correo electrónico es obligatorio.';
+    } else if (!emailRegex.test(email.trim())) {
+      errs.email = 'Ingrese un correo electrónico válido (ej: usuario@vivelite.pe).';
+    }
+
+    if (!isEditing) {
+      if (!password.trim()) {
+        errs.password = 'La contraseña es obligatoria para nuevos usuarios.';
+      } else if (password.trim().length < 6) {
+        errs.password = 'La contraseña debe tener al menos 6 caracteres.';
+      }
+    } else if (password.trim() && password.trim().length < 6) {
+      errs.password = 'La nueva contraseña debe tener al menos 6 caracteres.';
+    }
+
+    if (phone.trim() && phone.trim().replace(/\D/g, '').length !== 9) {
+      errs.phone = 'El teléfono debe contener 9 dígitos.';
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    if (!validate()) return;
+
+    setGeneralError(null);
     setIsLoading(true);
 
     try {
@@ -58,22 +102,17 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
         await userService.updateUser(userToEdit.id, {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           phone: phone.trim() || undefined,
           role,
           status,
           ...(password.trim() ? { password: password.trim() } : {}),
         });
       } else {
-        if (!password.trim()) {
-          setError('La contraseña es obligatoria para nuevos usuarios');
-          setIsLoading(false);
-          return;
-        }
         await userService.createUser({
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           password: password.trim(),
           phone: phone.trim() || undefined,
           role,
@@ -84,7 +123,7 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
       onSuccess();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Error al procesar la solicitud');
+      setGeneralError(err.message || 'Error al procesar la solicitud');
     } finally {
       setIsLoading(false);
     }
@@ -100,14 +139,15 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
           ? 'Modifica los accesos y credenciales del usuario'
           : 'Registra un nuevo integrante para el sistema'
       }
-      icon={isEditing ? <Shield className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
-      iconColor="bg-slate-100 text-slate-700"
+      icon={isEditing ? <Shield className="w-5 h-5 text-slate-800" /> : <UserPlus className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold">
-            {error}
+        {generalError && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-semibold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{generalError}</span>
           </div>
         )}
 
@@ -116,18 +156,27 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
             label="Nombre"
             type="text"
             required
+            autoFocus
             value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            placeholder="Ej: Juan"
+            onChange={(e) => {
+              setFirstName(e.target.value);
+              if (fieldErrors.firstName) setFieldErrors((prev) => ({ ...prev, firstName: '' }));
+            }}
+            placeholder="Ej: Juan Carlos"
             leftIcon={<User className="w-4 h-4" />}
+            error={fieldErrors.firstName}
           />
           <Input
             label="Apellido"
             type="text"
             required
             value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            placeholder="Ej: Pérez"
+            onChange={(e) => {
+              setLastName(e.target.value);
+              if (fieldErrors.lastName) setFieldErrors((prev) => ({ ...prev, lastName: '' }));
+            }}
+            placeholder="Ej: Pérez Gómez"
+            error={fieldErrors.lastName}
           />
         </div>
 
@@ -136,28 +185,40 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
           type="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: '' }));
+          }}
           placeholder="juan.perez@vivelite.pe"
           leftIcon={<Mail className="w-4 h-4" />}
+          error={fieldErrors.email}
         />
 
         <Input
-          label={isEditing ? 'Nueva Contraseña (Opcional)' : 'Contraseña'}
+          label={isEditing ? 'Nueva Contraseña (Dejar en blanco para conservar actual)' : 'Contraseña de Acceso'}
           type="password"
           required={!isEditing}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={isEditing ? 'Dejar en blanco para no modificar' : '••••••••••••'}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: '' }));
+          }}
+          placeholder={isEditing ? '••••••••••••' : 'Mínimo 6 caracteres'}
           leftIcon={<Lock className="w-4 h-4" />}
+          error={fieldErrors.password}
         />
 
         <Input
           label="Teléfono Móvil (WhatsApp)"
           type="tel"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+51 956 000 000"
+          onChange={(e) => {
+            setPhone(e.target.value.replace(/\D/g, '').slice(0, 9));
+            if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: '' }));
+          }}
+          placeholder="987654321"
           leftIcon={<Phone className="w-4 h-4" />}
+          error={fieldErrors.phone}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -166,10 +227,10 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
             value={role}
             onChange={(e) => setRole(e.target.value as UserRole)}
             options={[
-              { value: 'SUPER_ADMIN', label: 'Super Administrador' },
-              { value: 'ADMIN', label: 'Administrador' },
-              { value: 'VENDEDOR', label: 'Vendedor (Caja / POS)' },
-              { value: 'REPARTIDOR', label: 'Repartidor (Rutas)' },
+              { value: 'SUPER_ADMIN', label: 'Super Administrador (Acceso total)' },
+              { value: 'ADMIN', label: 'Administrador (Gestión y reportes)' },
+              { value: 'VENDEDOR', label: 'Vendedor (Caja / Terminal POS)' },
+              { value: 'REPARTIDOR', label: 'Repartidor (Rutas y entregas)' },
             ]}
           />
           <Select
@@ -183,7 +244,7 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
           />
         </div>
 
-        <div className="pt-3 flex items-center gap-3">
+        <div className="pt-2 flex items-center gap-3">
           <Button type="button" variant="outline" onClick={onClose} className="w-1/2">
             Cancelar
           </Button>
@@ -192,9 +253,9 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            {isEditing ? 'Guardar Cambios' : 'Crear Usuario'}
+            {isLoading ? 'Guardando...' : isEditing ? 'Guardar Cambios' : 'Crear Usuario'}
           </Button>
         </div>
       </form>

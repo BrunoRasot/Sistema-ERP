@@ -41,12 +41,27 @@ export function DeliverOrderModal({
   const [operationCode, setOperationCode] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [completedSummary, setCompletedSummary] = useState<any | null>(null);
 
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+    if (isNaN(bottlesDelivered) || bottlesDelivered < 0) {
+      errs.bottlesDelivered = 'La cantidad de envases entregados no puede ser negativa.';
+    }
+    if (isNaN(bottlesReturned) || bottlesReturned < 0) {
+      errs.bottlesReturned = 'La cantidad de envases devueltos no puede ser negativa.';
+    }
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -77,14 +92,14 @@ export function DeliverOrderModal({
         setCompletedSummary(null);
         onClose();
       }}
-      title={completedSummary ? '¡Pedido Entregado con Éxito!' : 'Completar Entrega'}
+      title={completedSummary ? '¡Pedido Entregado con Éxito!' : 'Completar Entrega de Pedido'}
       description={
         completedSummary
           ? `Venta registrada: ${completedSummary.sale?.saleNumber}`
           : `${order.orderNumber} — ${order.customer?.name}`
       }
-      icon={completedSummary ? <CheckCircle2 className="w-5 h-5" /> : <Receipt className="w-5 h-5" />}
-      iconColor={completedSummary ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}
+      icon={completedSummary ? <CheckCircle2 className="w-5 h-5 text-slate-800" /> : <Receipt className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="md"
     >
       {completedSummary ? (
@@ -98,11 +113,11 @@ export function DeliverOrderModal({
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Condición de pago:</span>
-              <span className="font-bold text-blue-600">
+              <span className="font-bold text-slate-800">
                 {completedSummary.sale?.saleType} ({paymentMethod})
               </span>
             </div>
-            <div className="pt-2 border-t border-slate-200 flex justify-between text-amber-800 font-semibold">
+            <div className="pt-2 border-t border-slate-200 flex justify-between text-slate-700 font-semibold">
               <span>Custodia de bidones:</span>
               <span>
                 {completedSummary.bottlesSummary?.returned} devueltos / {completedSummary.bottlesSummary?.delivered} entregados
@@ -117,9 +132,9 @@ export function DeliverOrderModal({
               setCompletedSummary(null);
               onClose();
             }}
-            className="w-full"
+            className="w-full bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Finalizar
+            Finalizar y Cerrar
           </Button>
         </div>
       ) : (
@@ -131,22 +146,24 @@ export function DeliverOrderModal({
             </div>
           )}
 
-          <div className="p-4 bg-blue-50/70 border border-blue-200 rounded-2xl flex items-center justify-between">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
             <div>
-              <span className="text-[11px] font-bold text-blue-700 block uppercase">
-                Monto Total del Pedido
+              <span className="text-[11px] font-bold text-slate-500 block uppercase">
+                Monto Total a Cobrar
               </span>
-              <span className="text-xl font-black text-blue-900">
+              <span className="text-2xl font-black text-slate-900">
                 {formatCurrency(order.total)}
               </span>
             </div>
-            <Receipt className="w-6 h-6 text-blue-500" />
+            <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+              <Receipt className="w-6 h-6 text-slate-700" />
+            </div>
           </div>
 
           {returnableCount > 0 && (
-            <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-2.5">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
-                <RotateCcw className="w-4 h-4" />
+            <div className="p-3.5 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-2.5">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                <RotateCcw className="w-4 h-4 text-slate-600" />
                 <span>Control de Envases Retornables ({returnableCount} en pedido)</span>
               </div>
 
@@ -156,64 +173,81 @@ export function DeliverOrderModal({
                   type="number"
                   min="0"
                   value={bottlesDelivered}
-                  onChange={(e) => setBottlesDelivered(parseInt(e.target.value) || 0)}
+                  onChange={(e) => {
+                    setBottlesDelivered(parseInt(e.target.value) || 0);
+                    if (fieldErrors.bottlesDelivered) setFieldErrors((prev) => ({ ...prev, bottlesDelivered: '' }));
+                  }}
                   className="text-center font-bold"
+                  error={fieldErrors.bottlesDelivered}
                 />
                 <Input
                   label="Vacíos devueltos:"
                   type="number"
                   min="0"
                   value={bottlesReturned}
-                  onChange={(e) => setBottlesReturned(parseInt(e.target.value) || 0)}
-                  className="text-center font-bold text-amber-900"
+                  onChange={(e) => {
+                    setBottlesReturned(parseInt(e.target.value) || 0);
+                    if (fieldErrors.bottlesReturned) setFieldErrors((prev) => ({ ...prev, bottlesReturned: '' }));
+                  }}
+                  className="text-center font-bold"
+                  error={fieldErrors.bottlesReturned}
                 />
               </div>
             </div>
           )}
 
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <Button
+          <div className="space-y-2 pt-1 border-t border-slate-100">
+            <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+              <button
                 type="button"
-                variant={saleType === 'CONTADO' ? 'primary' : 'outline'}
                 onClick={() => setSaleType('CONTADO')}
-                className="w-full"
+                className={`py-2 rounded-xl border transition ${
+                  saleType === 'CONTADO'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
               >
                 Cobro al Contado
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant={saleType === 'CREDITO' ? 'primary' : 'outline'}
                 onClick={() => setSaleType('CREDITO')}
-                className="w-full"
+                className={`py-2 rounded-xl border transition ${
+                  saleType === 'CREDITO'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
               >
                 A Crédito
-              </Button>
+              </button>
             </div>
 
             {saleType === 'CONTADO' && (
               <div className="space-y-2 pt-1">
                 <div className="grid grid-cols-4 gap-1.5">
                   {(['EFECTIVO', 'YAPE', 'PLIN', 'TRANSFERENCIA'] as PaymentMethod[]).map((m) => (
-                    <Button
+                    <button
                       key={m}
                       type="button"
-                      size="xs"
-                      variant={paymentMethod === m ? 'primary' : 'secondary'}
                       onClick={() => setPaymentMethod(m)}
+                      className={`p-1.5 text-[11px] font-bold rounded-lg border transition ${
+                        paymentMethod === m
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
                     >
                       {m}
-                    </Button>
+                    </button>
                   ))}
                 </div>
 
                 {paymentMethod !== 'EFECTIVO' && (
                   <Input
-                    label="Código de Operación"
+                    label="Código de Operación Digital"
                     type="text"
                     value={operationCode}
                     onChange={(e) => setOperationCode(e.target.value)}
-                    placeholder="Op. digital (opcional)"
+                    placeholder="Op. Yape / Plin / Transferencia"
                   />
                 )}
               </div>
@@ -225,7 +259,7 @@ export function DeliverOrderModal({
             type="text"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Nota o incidencia de la entrega (opcional)..."
+            placeholder="Nota o incidencia de la entrega..."
           />
 
           <div className="pt-2 flex items-center gap-3">
@@ -234,12 +268,12 @@ export function DeliverOrderModal({
             </Button>
             <Button
               type="submit"
-              variant="success"
+              variant="primary"
               isLoading={isLoading}
               leftIcon={<Check className="w-4 h-4" />}
-              className="w-1/2"
+              className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
             >
-              Confirmar Entrega
+              {isLoading ? 'Registrando...' : 'Confirmar Entrega'}
             </Button>
           </div>
         </form>

@@ -49,14 +49,19 @@ export function CreateOrderModal({
   const [items, setItems] = useState<OrderItemRow[]>([]);
   const [selectedProductToAdd, setSelectedProductToAdd] = useState('');
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleCustomerChange = (id: string) => {
     setCustomerId(id);
+    if (fieldErrors.customerId) setFieldErrors((prev) => ({ ...prev, customerId: '' }));
     const cust = customers.find((c) => c.id === id);
     if (cust) {
-      if (cust.address) setDeliveryAddress(cust.address);
+      if (cust.address) {
+        setDeliveryAddress(cust.address);
+        if (fieldErrors.deliveryAddress) setFieldErrors((prev) => ({ ...prev, deliveryAddress: '' }));
+      }
       if (cust.reference) setDeliveryReference(cust.reference);
     }
   };
@@ -76,6 +81,7 @@ export function CreateOrderModal({
       return [...prev, { productId: prod.id, quantity: 1, unitPrice: Number(prod.price) }];
     });
     setSelectedProductToAdd('');
+    if (fieldErrors.items) setFieldErrors((prev) => ({ ...prev, items: '' }));
   };
 
   const updateItemQty = (prodId: string, delta: number) => {
@@ -98,20 +104,28 @@ export function CreateOrderModal({
 
   const totalAmount = items.reduce((sum, it) => sum + it.quantity * it.unitPrice, 0);
 
+  const validate = (): boolean => {
+    const errs: Record<string, string> = {};
+
+    if (!customerId) {
+      errs.customerId = 'Debe seleccionar un cliente para despachar el pedido.';
+    }
+
+    if (!deliveryAddress.trim()) {
+      errs.deliveryAddress = 'La dirección de entrega es obligatoria.';
+    }
+
+    if (items.length === 0) {
+      errs.items = 'Debe agregar al menos un producto al pedido.';
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerId) {
-      setErrorMessage('Seleccione un cliente para el pedido');
-      return;
-    }
-    if (!deliveryAddress.trim()) {
-      setErrorMessage('Ingrese la dirección de entrega');
-      return;
-    }
-    if (items.length === 0) {
-      setErrorMessage('Agregue al menos un producto al pedido');
-      return;
-    }
+    if (!validate()) return;
 
     setIsLoading(true);
     setErrorMessage(null);
@@ -147,8 +161,8 @@ export function CreateOrderModal({
       onClose={onClose}
       title="Registrar Nuevo Pedido"
       description="Programación de despacho y entrega a domicilio"
-      icon={<Truck className="w-5 h-5" />}
-      iconColor="bg-blue-50 text-blue-600"
+      icon={<Truck className="w-5 h-5 text-slate-800" />}
+      iconColor="bg-slate-100"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -159,61 +173,87 @@ export function CreateOrderModal({
           </div>
         )}
 
-        <Select
-          label="Cliente Solicitante"
-          value={customerId}
-          onChange={(e) => handleCustomerChange(e.target.value)}
-          required
-        >
-          <option value="">-- Seleccione un cliente --</option>
-          {customers.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name} ({c.documentType}: {c.documentNumber}) · {c.phone}
-            </option>
-          ))}
-        </Select>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Input
-            label="Dirección de Entrega"
-            type="text"
-            required
-            value={deliveryAddress}
-            onChange={(e) => setDeliveryAddress(e.target.value)}
-            placeholder="Av./Calle, Número, Urbanización, Distrito"
-          />
-          <Input
-            label="Referencia de Entrega (Opcional)"
-            type="text"
-            value={deliveryReference}
-            onChange={(e) => setDeliveryReference(e.target.value)}
-            placeholder="Ej: Portón verde, timbre 2, frente a parque"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* 1. Cliente y Destino */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            1. Destinatario
+          </h4>
           <Select
-            label="Asignar Repartidor (Opcional)"
-            value={driverId}
-            onChange={(e) => setDriverId(e.target.value)}
+            label="Cliente Solicitante"
+            value={customerId}
+            onChange={(e) => handleCustomerChange(e.target.value)}
+            required
+            error={fieldErrors.customerId}
           >
-            <option value="">Por asignar en almacén</option>
-            {drivers.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.firstName} {d.lastName} ({d.role})
+            <option value="">-- Seleccionar cliente registrado --</option>
+            {customers.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.documentType}: {c.documentNumber}) · {c.phone}
               </option>
             ))}
           </Select>
-          <Input
-            label="Fecha / Turno Programado"
-            type="datetime-local"
-            value={scheduledDate}
-            onChange={(e) => setScheduledDate(e.target.value)}
-          />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Input
+              label="Dirección de Entrega"
+              type="text"
+              required
+              value={deliveryAddress}
+              onChange={(e) => {
+                setDeliveryAddress(e.target.value);
+                if (fieldErrors.deliveryAddress) setFieldErrors((prev) => ({ ...prev, deliveryAddress: '' }));
+              }}
+              placeholder="Av./Calle, Número, Urbanización, Distrito"
+              error={fieldErrors.deliveryAddress}
+            />
+            <Input
+              label="Referencia de Entrega (Opcional)"
+              type="text"
+              value={deliveryReference}
+              onChange={(e) => setDeliveryReference(e.target.value)}
+              placeholder="Ej: Portón verde, timbre 2, frente a parque"
+            />
+          </div>
         </div>
 
-        <div className="space-y-2 pt-2 border-t border-slate-100">
-          <label className="block text-xs font-semibold text-slate-700">Productos del Pedido *</label>
+        {/* 2. Logística y Despacho */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            2. Programación de Ruta
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Select
+              label="Asignar Repartidor (Opcional)"
+              value={driverId}
+              onChange={(e) => setDriverId(e.target.value)}
+            >
+              <option value="">Por asignar en almacén / despacho libre</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.firstName} {d.lastName} ({d.role})
+                </option>
+              ))}
+            </Select>
+            <Input
+              label="Fecha y Hora de Despacho"
+              type="datetime-local"
+              value={scheduledDate}
+              onChange={(e) => setScheduledDate(e.target.value)}
+            />
+          </div>
+        </div>
+
+        {/* 3. Productos del Pedido */}
+        <div className="p-3.5 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              3. Productos Solicitados
+            </h4>
+            <span className="text-[11px] font-bold text-slate-600">
+              {items.length} {items.length === 1 ? 'producto' : 'productos'}
+            </span>
+          </div>
+
           <div className="flex gap-2">
             <Select
               value={selectedProductToAdd}
@@ -227,21 +267,25 @@ export function CreateOrderModal({
                 </option>
               ))}
             </Select>
-            <Button
+            <button
               type="button"
-              variant="secondary"
               onClick={handleAddProduct}
               disabled={!selectedProductToAdd}
-              leftIcon={<Plus className="w-4 h-4" />}
+              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs disabled:opacity-40 transition flex items-center gap-1.5 shrink-0"
             >
-              Agregar
-            </Button>
+              <Plus className="w-4 h-4" />
+              <span>Agregar</span>
+            </button>
           </div>
+
+          {fieldErrors.items && (
+            <p className="text-xs text-rose-600 font-semibold">{fieldErrors.items}</p>
+          )}
 
           <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
             {items.length === 0 ? (
               <p className="text-slate-400 py-3 text-center text-xs italic">
-                No ha agregado productos a este pedido.
+                Seleccione un producto arriba y presione &quot;Agregar&quot;.
               </p>
             ) : (
               items.map((row) => {
@@ -249,7 +293,7 @@ export function CreateOrderModal({
                 return (
                   <div
                     key={row.productId}
-                    className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between text-xs"
+                    className="p-2.5 bg-white border border-slate-200 rounded-xl flex items-center justify-between text-xs shadow-2xs"
                   >
                     <div>
                       <p className="font-bold text-slate-800">{prod?.name || 'Producto'}</p>
@@ -292,9 +336,9 @@ export function CreateOrderModal({
           </div>
         </div>
 
-        <div className="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex items-center justify-between">
-          <span className="font-bold text-xs text-blue-900 uppercase">Total Estimado:</span>
-          <span className="text-lg font-black text-blue-900">{formatCurrency(totalAmount)}</span>
+        <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+          <span className="font-bold text-xs text-slate-600 uppercase">Total Estimado del Pedido:</span>
+          <span className="text-xl font-black text-slate-900">{formatCurrency(totalAmount)}</span>
         </div>
 
         <Input
@@ -314,9 +358,9 @@ export function CreateOrderModal({
             variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
-            className="w-1/2"
+            className="w-1/2 bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Crear Pedido
+            {isLoading ? 'Registrando...' : 'Crear Pedido'}
           </Button>
         </div>
       </form>
