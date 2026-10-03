@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": "..",
     "baseUrl": ".",
+    "isolatedModules": true,
     "paths": {
       "@/*": ["src/*"],
       "@modules/*": ["src/modules/*"],
