@@ -1,3 +1,4 @@
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 import { PrismaClient, Role, EntityStatus, UnitOfMeasure, CustomerType, LoyaltyTier } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
@@ -9,10 +10,11 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required to run database seeds.');
 }
 
-const isLocalhost = connectionString.includes('localhost') || connectionString.includes('127.0.0.1');
+const cleanConnectionString = connectionString.replace(/[\?&]sslmode=[^&]+/g, '');
+const isLocalhost = cleanConnectionString.includes('localhost') || cleanConnectionString.includes('127.0.0.1');
 const pool = new Pool({
-  connectionString,
-  ...(isLocalhost ? {} : { ssl: { rejectUnauthorized: false } }),
+  connectionString: cleanConnectionString,
+  ssl: isLocalhost ? false : { rejectUnauthorized: false },
 });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
