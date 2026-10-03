@@ -107,25 +107,26 @@ export default function CustomersPage() {
       </div>
 
       {/* APARTADO DE CATEGORÍAS DE CLIENTES Y COMPORTAMIENTO DE COMPRA */}
-      <div className="shrink-0 card p-3 sm:p-4 space-y-3 bg-gradient-to-r from-slate-900 via-slate-800 to-blue-950 text-white rounded-2xl shadow-sm border border-slate-800">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-white/10 pb-2.5">
+      {/* APARTADO DE CATEGORÍAS DE CLIENTES Y COMPORTAMIENTO DE COMPRA (Tonalidad Blanca) */}
+      <div className="shrink-0 card p-3 sm:p-4 space-y-3 bg-white border border-slate-200/80 shadow-xs rounded-2xl">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-400/20 text-amber-300">
-              <Trophy className="w-4 h-4" />
+            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
+              <Trophy className="w-4 h-4 text-amber-500" />
             </div>
             <div>
-              <h2 className="text-xs sm:text-sm font-bold text-white tracking-wide flex items-center gap-1.5">
+              <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide flex items-center gap-1.5">
                 Categorías de Clientes por Volumen de Compra
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 inline" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500 inline" />
               </h2>
-              <p className="text-[10px] sm:text-[11px] text-slate-300">
+              <p className="text-[10px] sm:text-[11px] text-slate-500">
                 Segmentación comercial en tiempo real: desde el cliente que más compra hasta clientes por activar
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-xs bg-white/10 px-2.5 py-1 rounded-xl">
-            <span className="text-slate-300">Facturación acumulada:</span>
-            <span className="font-black text-amber-300">{formatCurrency(summary?.totalRevenue || 0)}</span>
+          <div className="flex items-center gap-1.5 text-xs bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-xl">
+            <span className="text-slate-500">Facturación acumulada:</span>
+            <span className="font-black text-slate-900">{formatCurrency(summary?.totalRevenue || 0)}</span>
           </div>
         </div>
 
@@ -137,27 +138,27 @@ export default function CustomersPage() {
               setSortBy('MOST_PURCHASES');
             }}
             title="Clic para filtrar por clientes que más compran"
-            className="cursor-pointer bg-white/10 hover:bg-white/15 transition rounded-xl p-3 border border-amber-500/30 space-y-1.5 relative overflow-hidden group"
+            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1 font-bold text-amber-300">
-                <Trophy className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 font-bold text-slate-900">
+                <Trophy className="w-3.5 h-3.5 text-amber-500" />
                 El que más compra
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 font-extrabold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
                 {summary?.topBuyersCount || 0} TOP
               </span>
             </div>
             {summary?.topBuyer ? (
               <div>
-                <p className="font-extrabold text-sm text-white truncate group-hover:text-amber-200 transition">
+                <p className="font-extrabold text-sm text-slate-900 truncate group-hover:text-blue-600 transition">
                   {summary.topBuyer.name}
                 </p>
-                <div className="flex items-center justify-between text-[11px] text-slate-300 mt-1">
-                  <span className="font-black text-amber-300 text-xs">
+                <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+                  <span className="font-black text-slate-900 text-xs">
                     {formatCurrency(summary.topBuyer.totalPurchases)}
                   </span>
-                  <span className="text-slate-300">
+                  <span>
                     {summary.topBuyer.salesCount} {summary.topBuyer.salesCount === 1 ? 'pedido' : 'pedidos'}
                   </span>
                 </div>
@@ -165,7 +166,7 @@ export default function CustomersPage() {
             ) : (
               <p className="text-xs text-slate-400 italic">Sin compras registradas aún</p>
             )}
-            <span className="text-[9px] text-amber-300/80 block pt-0.5 font-medium">
+            <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
               Filtrar mejores compradores →
             </span>
           </div>
@@ -177,27 +178,27 @@ export default function CustomersPage() {
               setSortBy('LEAST_PURCHASES');
             }}
             title="Clic para filtrar clientes con menor compra acumulada"
-            className="cursor-pointer bg-white/10 hover:bg-white/15 transition rounded-xl p-3 border border-white/10 space-y-1.5 relative overflow-hidden group"
+            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1 font-bold text-rose-300">
-                <TrendingDown className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 font-bold text-slate-900">
+                <TrendingDown className="w-3.5 h-3.5 text-slate-500" />
                 El que menos compra
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-400/20 text-rose-200 font-extrabold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
                 {summary?.occasionalCount || 0} Menores
               </span>
             </div>
             {summary?.leastBuyer ? (
               <div>
-                <p className="font-extrabold text-sm text-white truncate group-hover:text-rose-200 transition">
+                <p className="font-extrabold text-sm text-slate-900 truncate group-hover:text-blue-600 transition">
                   {summary.leastBuyer.name}
                 </p>
-                <div className="flex items-center justify-between text-[11px] text-slate-300 mt-1">
-                  <span className="font-bold text-rose-200 text-xs">
+                <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
+                  <span className="font-bold text-slate-900 text-xs">
                     {formatCurrency(summary.leastBuyer.totalPurchases)}
                   </span>
-                  <span className="text-slate-300">
+                  <span>
                     {summary.leastBuyer.salesCount} {summary.leastBuyer.salesCount === 1 ? 'compra' : 'compras'}
                   </span>
                 </div>
@@ -205,7 +206,7 @@ export default function CustomersPage() {
             ) : (
               <p className="text-xs text-slate-400 italic">Sin clientes con compras mínimas</p>
             )}
-            <span className="text-[9px] text-rose-300/80 block pt-0.5 font-medium">
+            <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
               Oportunidad de reactivación →
             </span>
           </div>
@@ -217,21 +218,21 @@ export default function CustomersPage() {
               setSortBy('MOST_PURCHASES');
             }}
             title="Clic para ver clientes habituales"
-            className="cursor-pointer bg-white/10 hover:bg-white/15 transition rounded-xl p-3 border border-white/10 space-y-1.5 group"
+            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1 font-bold text-emerald-300">
-                <ShoppingBag className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 font-bold text-slate-900">
+                <ShoppingBag className="w-3.5 h-3.5 text-slate-600" />
                 Clientes Frecuentes
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 font-extrabold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
                 {summary?.frequentCount || 0} Clientes
               </span>
             </div>
-            <p className="text-xs text-slate-200 line-clamp-2">
+            <p className="text-xs text-slate-500 line-clamp-2">
               Clientes con pedidos regulares y consumo recurrente en Ica.
             </p>
-            <span className="text-[9px] text-emerald-300/80 block pt-0.5 font-medium">
+            <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
               Ver clientes regulares →
             </span>
           </div>
@@ -243,21 +244,21 @@ export default function CustomersPage() {
               setSortBy('RECENT');
             }}
             title="Clic para ver clientes registrados sin compras"
-            className="cursor-pointer bg-white/10 hover:bg-white/15 transition rounded-xl p-3 border border-white/10 space-y-1.5 group"
+            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
-              <span className="flex items-center gap-1 font-bold text-blue-300">
-                <Users className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1 font-bold text-slate-900">
+                <Users className="w-3.5 h-3.5 text-slate-600" />
                 Sin Compras Aún
               </span>
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-400/20 text-blue-200 font-extrabold">
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
                 {summary?.noPurchasesCount || 0} Nuevos
               </span>
             </div>
-            <p className="text-xs text-slate-200 line-clamp-2">
+            <p className="text-xs text-slate-500 line-clamp-2">
               Cuentas registradas pendientes de su primera orden o entrega.
             </p>
-            <span className="text-[9px] text-blue-300/80 block pt-0.5 font-medium">
+            <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
               Ver para activar ventas →
             </span>
           </div>
@@ -323,8 +324,8 @@ export default function CustomersPage() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'TOP_BUYER'
-                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                  : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
               <Trophy className="w-3.5 h-3.5" />
@@ -338,8 +339,8 @@ export default function CustomersPage() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'FREQUENT'
-                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                  : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
@@ -353,7 +354,7 @@ export default function CustomersPage() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'OCCASIONAL'
-                  ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -368,8 +369,8 @@ export default function CustomersPage() {
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'NO_PURCHASES'
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                  : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
               <Users className="w-3.5 h-3.5" />
@@ -380,8 +381,8 @@ export default function CustomersPage() {
               onClick={() => setFilterType('BOTTLES')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'BOTTLES'
-                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                  : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
               <RotateCcw className="w-3.5 h-3.5" />
@@ -392,7 +393,7 @@ export default function CustomersPage() {
               onClick={() => setFilterType('HOGAR')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'HOGAR'
-                  ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -404,7 +405,7 @@ export default function CustomersPage() {
               onClick={() => setFilterType('EMPRESA')}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                 filterType === 'EMPRESA'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
