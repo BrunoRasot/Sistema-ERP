@@ -1,8 +1,0 @@
-allowBuilds:
-  '@nestjs/core': true
-  '@prisma/client': set this to true or false
-  '@prisma/engines': true
-  '@scarf/scarf': true
-  bcrypt: set this to true or false
-  msgpackr-extract: true
-  prisma: true
