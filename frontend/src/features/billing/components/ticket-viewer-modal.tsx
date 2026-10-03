@@ -172,9 +172,24 @@ export function TicketViewerModal({
               Hash: {ticket.sunat.hash}
             </p>
             <div className="text-[8px] text-slate-500 space-y-0.5 pt-1 border-t border-slate-200">
-              <p className="font-bold text-emerald-700">COMPROBANTE ACEPTADO POR SUNAT</p>
-              <p>Representación impresa de la Factura/Boleta Electrónica</p>
-              <p>Consulte su validez en: https://www.sunat.gob.pe</p>
+              {ticket.sunat.status === 'ACEPTADO' ? (
+                <>
+                  <p className="font-bold text-emerald-700">COMPROBANTE ACEPTADO POR SUNAT</p>
+                  <p>Representación impresa de la Factura/Boleta Electrónica</p>
+                  <p>Consulte su validez en: https://www.sunat.gob.pe</p>
+                </>
+              ) : ticket.sunat.status === 'ANULADO' ? (
+                <>
+                  <p className="font-bold text-rose-700">COMPROBANTE ANULADO / DADO DE BAJA</p>
+                  <p>Este documento no tiene validez para efectos tributarios</p>
+                </>
+              ) : (
+                <>
+                  <p className="font-bold text-amber-700">COMPROBANTE ELECTRÓNICO (PENDIENTE DE ENVÍO SUNAT)</p>
+                  <p>Representación previa emitida bajo estándar UBL 2.1</p>
+                  <p className="text-[7px] text-slate-400">Sujeto a validación y recepción de CDR oficial</p>
+                </>
+              )}
               <p className="font-bold pt-0.5">¡GRACIAS POR SU PREFERENCIA!</p>
             </div>
           </div>

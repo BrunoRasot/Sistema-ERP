@@ -163,6 +163,7 @@ export class ImportsService {
 
           let customerId = '';
           if (existing) {
+            // Protección de integridad contable: NO sobrescribir saldos deudores acumulados ni envases de clientes existentes
             const updated = await tx.customer.update({
               where: { id: existing.id },
               data: {
@@ -170,9 +171,7 @@ export class ImportsService {
                 phone,
                 address,
                 reference,
-                bottlesHolding,
-                currentDebt,
-                creditLimit,
+                creditLimit: creditLimit > 0 ? creditLimit : existing.creditLimit,
               },
             });
             customerId = updated.id;
@@ -192,20 +191,20 @@ export class ImportsService {
               },
             });
             customerId = created.id;
-          }
 
-          // Registrar en Kardex de Bidones si tiene saldo inicial en custodia
-          if (bottlesHolding > 0) {
-            await tx.bottleTransaction.create({
-              data: {
-                customerId,
-                type: BottleTransactionType.AJUSTE,
-                quantity: bottlesHolding,
-                balanceAfter: bottlesHolding,
-                notes: 'Saldo inicial de bidones migrado desde Excel',
-                recordedById: userId,
-              },
-            });
+            // Registrar en Kardex de Bidones únicamente para clientes nuevos con saldo inicial
+            if (bottlesHolding > 0) {
+              await tx.bottleTransaction.create({
+                data: {
+                  customerId,
+                  type: BottleTransactionType.AJUSTE,
+                  quantity: bottlesHolding,
+                  balanceAfter: bottlesHolding,
+                  notes: 'Saldo inicial de bidones migrado desde Excel',
+                  recordedById: userId,
+                },
+              });
+            }
           }
         });
 
@@ -213,6 +212,21 @@ export class ImportsService {
       } catch (err: any) {
         errors.push({ row: rowNumber, identifier: docNumber, error: err.message || 'Error al guardar' });
       }
+    }
+
+    if (userId) {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action: 'IMPORT_CUSTOMERS',
+          entity: 'Customer',
+          newValues: {
+            totalRows: rawRows.length,
+            successCount,
+            errorCount: errors.length,
+          },
+        },
+      });
     }
 
     return {
@@ -291,6 +305,7 @@ export class ImportsService {
 
           let productId = '';
           if (existing) {
+            // Protección de inventario: actualizar información del catálogo sin reiniciar el stock operativo existente
             const updated = await tx.product.update({
               where: { id: existing.id },
               data: {
@@ -299,7 +314,6 @@ export class ImportsService {
                 price,
                 cost,
                 unit,
-                stock,
                 isReturnable,
               },
             });
@@ -318,23 +332,23 @@ export class ImportsService {
               },
             });
             productId = created.id;
-          }
 
-          // Registrar en Kardex si tiene stock inicial
-          if (stock > 0) {
-            await tx.inventoryMovement.create({
-              data: {
-                productId,
-                movementType: InventoryMovementType.AJUSTE,
-                quantity: stock,
-                previousStock: 0,
-                newStock: stock,
-                unitCost: cost,
-                reason: 'Stock inicial cargado desde migración Excel',
-                referenceType: 'EXCEL_MIGRATION',
-                userId,
-              },
-            });
+            // Registrar en Kardex únicamente si es un producto nuevo con stock inicial
+            if (stock > 0) {
+              await tx.inventoryMovement.create({
+                data: {
+                  productId,
+                  movementType: InventoryMovementType.AJUSTE,
+                  quantity: stock,
+                  previousStock: 0,
+                  newStock: stock,
+                  unitCost: cost,
+                  reason: 'Stock inicial cargado desde migración Excel',
+                  referenceType: 'EXCEL_MIGRATION',
+                  userId,
+                },
+              });
+            }
           }
         });
 
@@ -342,6 +356,21 @@ export class ImportsService {
       } catch (err: any) {
         errors.push({ row: rowNumber, identifier: code, error: err.message || 'Error al guardar' });
       }
+    }
+
+    if (userId) {
+      await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action: 'IMPORT_PRODUCTS',
+          entity: 'Product',
+          newValues: {
+            totalRows: rawRows.length,
+            successCount,
+            errorCount: errors.length,
+          },
+        },
+      });
     }
 
     return {

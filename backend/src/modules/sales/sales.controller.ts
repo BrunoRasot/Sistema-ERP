@@ -16,13 +16,15 @@ import { CreateSaleDto } from './dto/create-sale.dto';
 import { FilterSaleDto } from './dto/filter-sale.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { RateLimit } from '../../common/decorators/rate-limit.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
 
 @ApiTags('Sales & POS')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, RateLimitGuard)
 @Controller('sales')
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
@@ -47,6 +49,7 @@ export class SalesController {
   }
 
   @Get('export/excel')
+  @RateLimit({ limit: 10, ttlSeconds: 60 })
   @ApiOperation({
     summary: 'Exportar registro de ventas en Excel con formato oficial (Zona, Distrito, 20L, 7L)',
   })

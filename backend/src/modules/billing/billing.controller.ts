@@ -11,6 +11,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { BillingService } from './billing.service';
 import { EmitInvoiceDto } from './dto/emit-invoice.dto';
 import { FilterBillingDto } from './dto/filter-billing.dto';
+import { VoidInvoiceDto } from './dto/void-invoice.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -59,5 +60,16 @@ export class BillingController {
   @ApiOperation({ summary: 'Obtener datos formateados para impresión de Ticket 80mm' })
   getTicketData(@Param('id') id: string) {
     return this.billingService.getTicketData(id);
+  }
+
+  @Post(':id/void')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @ApiOperation({ summary: 'Anular comprobante electrónico con motivo y registro de auditoría' })
+  voidDocument(
+    @Param('id') id: string,
+    @Body() voidDto: VoidInvoiceDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.billingService.voidDocument(id, voidDto.reason, userId);
   }
 }

@@ -19,6 +19,13 @@ export class BillingService {
 
   async emit(dto: EmitInvoiceDto, userId?: string) {
     return this.prisma.$transaction(async (tx) => {
+      // Bloqueo a nivel de transacción PostgreSQL para serializar correlativos y evitar colisiones concurrentes
+      try {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(424243)`;
+      } catch (err) {
+        // Ignorar si el motor es mock en pruebas unitarias
+      }
+
       const sale = await tx.sale.findUnique({
         where: { id: dto.saleId },
         include: {
@@ -85,7 +92,16 @@ export class BillingService {
 
       const { xml, hash, qrText } = buildUbl21Xml(ublData);
 
-      // 5. Crear el Comprobante Electrónico (Estándar UBL 2.1 y registro fiscal oficial)
+      // Estado normativo: En ausencia de envío directo a WebService SOAP de SUNAT/OSE,
+      // el comprobante se emite localmente con estado PENDIENTE de envío oficial.
+      const isAutoAccepted = process.env.SUNAT_AUTO_ACCEPT === 'true';
+      const initialSunatStatus = isAutoAccepted ? SunatStatus.ACEPTADO : SunatStatus.PENDIENTE;
+      const responseCode = isAutoAccepted ? '0' : 'PENDIENTE_ENVIO';
+      const responseMessage = isAutoAccepted
+        ? `La ${dto.invoiceType === InvoiceType.FACTURA ? 'Factura' : 'Boleta'} ${formattedDocNumber} ha sido aceptada en ambiente de pruebas.`
+        : `Comprobante ${formattedDocNumber} generado internamente (UBL 2.1). Pendiente de envío y validación con SUNAT/OSE.`;
+
+      // 5. Crear el Comprobante Electrónico (Estándar UBL 2.1)
       const doc = await tx.electronicDocument.create({
         data: {
           saleId: sale.id,
@@ -95,11 +111,9 @@ export class BillingService {
           issueDate: new Date(),
           hash,
           xmlUrl: `data:application/xml;base64,${Buffer.from(xml).toString('base64')}`,
-          sunatStatus: SunatStatus.ACEPTADO,
-          sunatResponseCode: '0',
-          sunatResponseMessage: `La ${
-            dto.invoiceType === InvoiceType.FACTURA ? 'Factura' : 'Boleta de Venta'
-          } ${formattedDocNumber} ha sido aceptada por SUNAT exitosamente.`,
+          sunatStatus: initialSunatStatus,
+          sunatResponseCode: responseCode,
+          sunatResponseMessage: responseMessage,
           customerChannel: dto.customerChannel || 'WHATSAPP',
           notificationStatus: 'PENDIENTE',
         },
@@ -121,6 +135,7 @@ export class BillingService {
             invoiceType: dto.invoiceType,
             total: sale.total,
             hash,
+            sunatStatus: initialSunatStatus,
           },
         },
       });
@@ -130,7 +145,7 @@ export class BillingService {
         documentNumber: formattedDocNumber,
         hash,
         qrText,
-        message: `Comprobante ${formattedDocNumber} emitido y aceptado por SUNAT.`,
+        message: `Comprobante ${formattedDocNumber} emitido en formato UBL 2.1 (${initialSunatStatus === SunatStatus.ACEPTADO ? 'Aceptado' : 'Pendiente de envío SUNAT'}).`,
       };
     });
   }
@@ -283,5 +298,53 @@ export class BillingService {
         items: { include: { product: true } },
       },
     });
+  }
+
+  async voidDocument(id: string, reason: string, userId?: string) {
+    if (!reason || reason.trim().length < 5) {
+      throw new BadRequestException('El motivo de anulación es obligatorio (mínimo 5 caracteres).');
+    }
+
+    const doc = await this.prisma.electronicDocument.findUnique({
+      where: { id },
+      include: { sale: true },
+    });
+
+    if (!doc) {
+      throw new NotFoundException(`Comprobante con ID ${id} no encontrado`);
+    }
+
+    if (doc.isVoided) {
+      throw new BadRequestException('Este comprobante ya se encuentra anulado.');
+    }
+
+    const updated = await this.prisma.electronicDocument.update({
+      where: { id },
+      data: {
+        isVoided: true,
+        voidReason: reason.trim(),
+        sunatStatus: SunatStatus.ANULADO,
+        sunatResponseMessage: `Comprobante anulado administrativamente. Motivo: ${reason.trim()}`,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'VOID_INVOICE',
+        entity: 'ElectronicDocument',
+        entityId: doc.id,
+        newValues: {
+          documentNumber: `${doc.series}-${String(doc.correlative).padStart(8, '0')}`,
+          voidReason: reason.trim(),
+          sunatStatus: SunatStatus.ANULADO,
+        },
+      },
+    });
+
+    return {
+      message: `Comprobante ${doc.series}-${String(doc.correlative).padStart(8, '0')} anulado correctamente.`,
+      document: updated,
+    };
   }
 }
