@@ -12,10 +12,20 @@ describe('Unit Test: SalesService', () => {
 
   beforeEach(() => {
     prismaMock = createPrismaMock();
+    prismaMock.cashShift.findFirst.mockResolvedValue({ id: 'shift-1', status: 'ABIERTA' });
     service = new SalesService(prismaMock as any);
   });
 
   describe('create sale validations', () => {
+    it('should throw BadRequestException if cash register is closed', async () => {
+      prismaMock.customer.findFirst.mockResolvedValue(mockCustomerDni);
+      prismaMock.cashShift.findFirst.mockResolvedValue(null);
+
+      await expect(
+        service.create(mockCreateSaleContadoDto as any, 'usr-1'),
+      ).rejects.toThrow('No se puede realizar ninguna venta porque la caja se encuentra cerrada');
+    });
+
     it('should throw BadRequestException if sale items array is empty', async () => {
       await expect(
         service.create({ customerId: 'cust-1', items: [] } as any, 'usr-1'),
