@@ -18,6 +18,8 @@ import {
   SaleType,
   BottleTransactionType,
   CashShiftStatus,
+  CashMovementType,
+  PaymentMethod,
   Role,
   Prisma,
 } from '@prisma/client';
@@ -50,7 +52,26 @@ export class OrdersService {
         }
       }
 
+      try {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(424244)`;
+      } catch (err) {
+        // Ignorar si el motor es mock en pruebas
+      }
+
       const currentYear = new Date().getFullYear();
+      const lastOrder = await tx.order.findFirst({
+        where: { orderNumber: { startsWith: `PED-${currentYear}-` } },
+        orderBy: { createdAt: 'desc' },
+        select: { orderNumber: true },
+      });
+
+      let nextOrderNum = 1;
+      if (lastOrder?.orderNumber) {
+        const parts = lastOrder.orderNumber.split('-');
+        const lastSeq = parseInt(parts[2], 10);
+        if (!isNaN(lastSeq)) nextOrderNum = lastSeq + 1;
+      }
+
       const countThisYear = await tx.order.count({
         where: {
           createdAt: {
@@ -58,7 +79,8 @@ export class OrdersService {
           },
         },
       });
-      const orderNumber = `PED-${currentYear}-${String(countThisYear + 1).padStart(5, '0')}`;
+      const nextOrderCorrelative = Math.max(nextOrderNum, countThisYear + 1);
+      const orderNumber = `PED-${currentYear}-${String(nextOrderCorrelative).padStart(5, '0')}`;
 
       let subtotal = 0;
       const preparedItems: any[] = [];
@@ -465,7 +487,27 @@ export class OrdersService {
         });
       }
 
+      // 2. Serialización transaccional de correlativo de venta con el mismo advisory lock que el POS (424242)
+      try {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(424242)`;
+      } catch (err) {
+        // Ignorar si el motor es mock en pruebas
+      }
+
       const currentYear = new Date().getFullYear();
+      const lastSale = await tx.sale.findFirst({
+        where: { saleNumber: { startsWith: `VTA-${currentYear}-` } },
+        orderBy: { createdAt: 'desc' },
+        select: { saleNumber: true },
+      });
+
+      let nextSaleNum = 1;
+      if (lastSale?.saleNumber) {
+        const parts = lastSale.saleNumber.split('-');
+        const lastSeq = parseInt(parts[2], 10);
+        if (!isNaN(lastSeq)) nextSaleNum = lastSeq + 1;
+      }
+
       const countThisYear = await tx.sale.count({
         where: {
           createdAt: {
@@ -473,7 +515,8 @@ export class OrdersService {
           },
         },
       });
-      const saleNumber = `VTA-${currentYear}-${String(countThisYear + 1).padStart(5, '0')}`;
+      const nextSaleCorrelative = Math.max(nextSaleNum, countThisYear + 1);
+      const saleNumber = `VTA-${currentYear}-${String(nextSaleCorrelative).padStart(5, '0')}`;
 
       const total = Number(order.total);
       const saleType = deliverDto.saleType || SaleType.CONTADO;
@@ -506,6 +549,13 @@ export class OrdersService {
         where: { status: CashShiftStatus.ABIERTA },
         orderBy: { openedAt: 'desc' },
       });
+
+      const paymentMethod = deliverDto.paymentMethod || PaymentMethod.EFECTIVO;
+      if (paidAmount > 0 && paymentMethod === PaymentMethod.EFECTIVO && !activeShift) {
+        throw new BadRequestException(
+          'No se puede recibir cobro en efectivo en la entrega porque la caja se encuentra cerrada. Debe aperturar un turno de caja previamente.',
+        );
+      }
 
       const sale = await tx.sale.create({
         data: {
@@ -540,10 +590,26 @@ export class OrdersService {
             shiftId: activeShift ? activeShift.id : null,
             receivedById: userId,
             amount: paidAmount,
-            paymentMethod: deliverDto.paymentMethod || 'EFECTIVO',
+            paymentMethod,
             operationCode: deliverDto.operationCode?.trim(),
           },
         });
+
+        // Registrar ingreso en arqueo de caja si el pago fue en efectivo y hay turno abierto
+        if (paymentMethod === PaymentMethod.EFECTIVO && activeShift) {
+          await tx.cashMovement.create({
+            data: {
+              shiftId: activeShift.id,
+              recordedById: userId,
+              type: CashMovementType.INGRESO,
+              amount: paidAmount,
+              paymentMethod: PaymentMethod.EFECTIVO,
+              reason: `Cobro en reparto de pedido ${order.orderNumber} - Cliente: ${order.customer.name}`,
+              referenceType: 'ORDER',
+              referenceId: order.id,
+            },
+          });
+        }
       }
 
       await tx.delivery.updateMany({

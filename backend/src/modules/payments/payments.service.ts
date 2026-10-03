@@ -151,6 +151,13 @@ export class PaymentsService {
 
   async collect(dto: CollectPaymentDto, userId?: string) {
     return this.prisma.$transaction(async (tx) => {
+      // Bloqueo pesimista a nivel de transacción PostgreSQL para serializar cobros y evitar sobreamortizaciones concurrentes
+      try {
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(424245)`;
+      } catch (err) {
+        // Ignorar si el motor es mock en pruebas
+      }
+
       const sale = await tx.sale.findUnique({
         where: { id: dto.saleId },
         include: { customer: true },

@@ -15,8 +15,7 @@ export class DashboardService {
     const [
       todaySalesAgg,
       activeOrdersCount,
-      customersBottleAgg,
-      customersDebtAgg,
+      customersAgg,
       lowStockProducts,
       recentOrders,
       recentSales,
@@ -45,15 +44,12 @@ export class DashboardService {
         },
       }),
 
-      // Total de bidones en poder de clientes
+      // Total de bidones en poder de clientes y deuda total por cobrar (consulta unificada)
       this.prisma.customer.aggregate({
-        _sum: { bottlesHolding: true },
-        where: { deletedAt: null },
-      }),
-
-      // Deuda total por cobrar
-      this.prisma.customer.aggregate({
-        _sum: { currentDebt: true },
+        _sum: {
+          bottlesHolding: true,
+          currentDebt: true,
+        },
         where: { deletedAt: null },
       }),
 
@@ -137,8 +133,8 @@ export class DashboardService {
         todaySalesTotal: Number(todaySalesAgg._sum.total || 0),
         todaySalesCount: todaySalesAgg._count.id,
         activeOrdersCount,
-        bottlesInHolding: customersBottleAgg._sum.bottlesHolding || 0,
-        totalPendingDebt: Number(customersDebtAgg._sum.currentDebt || 0),
+        bottlesInHolding: customersAgg._sum.bottlesHolding || 0,
+        totalPendingDebt: Number(customersAgg._sum.currentDebt || 0),
         lowStockCount: lowStockProducts,
         isShiftOpen: !!activeShift,
         cashRegisterName: activeShift?.cashRegister?.name || 'Caja Principal',
