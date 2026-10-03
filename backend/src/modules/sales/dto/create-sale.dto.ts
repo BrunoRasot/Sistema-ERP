@@ -71,6 +71,12 @@ export class CreateSaleDto {
   @Type(() => CreateSaleItemDto)
   items: CreateSaleItemDto[];
 
+  @ApiPropertyOptional({ example: 5.0, default: 0, description: 'Descuento global aplicado a la venta en soles' })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  discount?: number;
+
   @ApiPropertyOptional({ type: CreatePaymentDto, description: 'Pago inicial o total de la venta' })
   @IsOptional()
   @ValidateNested()

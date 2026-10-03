@@ -141,6 +141,10 @@ export class SalesService {
         });
       }
 
+      if (createDto.discount && Number(createDto.discount) > 0) {
+        totalDiscount += Number(createDto.discount);
+      }
+
       const total = Math.max(0, subtotal - totalDiscount);
       // En Perú el IGV 18% ya está incluido en los precios finales de venta
       const tax = Math.round((total - total / 1.18) * 100) / 100;

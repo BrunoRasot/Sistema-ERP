@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronUp,
   Truck,
+  Tag,
 } from 'lucide-react';
 import { Product } from '@/features/products/types/product';
 import { Customer } from '@/features/customers/types/customer';
@@ -59,6 +60,11 @@ export function PosTerminal({
   const [operationCode, setOperationCode] = useState<string>('');
   const [bottlesReturned, setBottlesReturned] = useState<number>(0);
   const [notes, setNotes] = useState<string>('');
+
+  // Descuento al cliente
+  const [discountType, setDiscountType] = useState<'PERCENT' | 'FIXED'>('PERCENT');
+  const [discountValue, setDiscountValue] = useState<number>(0);
+  const [isDiscountOpen, setIsDiscountOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -109,12 +115,29 @@ export function PosTerminal({
     );
   };
 
+  const updateUnitPrice = (productId: string, newPrice: number) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.product.id === productId ? { ...item, unitPrice: Math.max(0, newPrice) } : item,
+      ),
+    );
+  };
+
   const removeFromCart = (productId: string) => {
     setCart((prev) => prev.filter((item) => item.product.id !== productId));
   };
 
-  // Cálculos de totales
-  const totalAmount = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  // Cálculos de totales y descuentos
+  const rawSubtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const calculatedDiscount =
+    discountValue > 0
+      ? discountType === 'PERCENT'
+        ? (rawSubtotal * discountValue) / 100
+        : discountValue
+      : 0;
+  const discountAmount = Math.min(rawSubtotal, Math.max(0, calculatedDiscount));
+  const totalAmount = Math.max(0, rawSubtotal - discountAmount);
+
   const totalReturnableItems = cart.reduce(
     (sum, item) => (item.product.isReturnable ? sum + item.quantity : sum),
     0,
@@ -146,6 +169,7 @@ export function PosTerminal({
         quantity: item.quantity,
         unitPrice: item.unitPrice,
       })),
+      discount: discountAmount > 0 ? Number(discountAmount.toFixed(2)) : undefined,
       payment:
         saleType === 'CONTADO'
           ? {
@@ -166,6 +190,8 @@ export function PosTerminal({
       setBottlesReturned(0);
       setOperationCode('');
       setNotes('');
+      setDiscountValue(0);
+      setIsDiscountOpen(false);
       onSaleSuccess();
     } catch (err: any) {
       setErrorMessage(err?.message || 'Error al procesar la venta');
@@ -245,6 +271,20 @@ export function PosTerminal({
 
         <div class="divider"></div>
         <table>
+          ${
+            Number(sale.discount) > 0
+              ? `
+            <tr>
+              <td>Subtotal:</td>
+              <td class="text-right">S/ ${Number(Number(sale.total) + Number(sale.discount)).toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td>Descuento al Cliente:</td>
+              <td class="text-right bold">- S/ ${Number(sale.discount).toFixed(2)}</td>
+            </tr>
+          `
+              : ''
+          }
           <tr>
             <td><strong>TOTAL A PAGAR:</strong></td>
             <td class="text-right bold" style="font-size: 13px;">S/ ${Number(sale.total).toFixed(2)}</td>
@@ -305,6 +345,12 @@ export function PosTerminal({
                 <span className="text-slate-500">Cliente:</span>
                 <span className="font-bold text-slate-800">{completedSale.sale.customer?.name}</span>
               </div>
+              {Number(completedSale.sale.discount) > 0 && (
+                <div className="flex justify-between text-emerald-700 font-bold">
+                  <span>Descuento aplicado:</span>
+                  <span>- {formatCurrency(completedSale.sale.discount)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-slate-500">Total Cobrado:</span>
                 <span className="font-black text-slate-900 text-sm">
@@ -532,9 +578,22 @@ export function PosTerminal({
                       <p className="text-xs font-bold text-slate-800 truncate">
                         {item.product.name}
                       </p>
-                      <p className="text-[11px] text-slate-400">
-                        {formatCurrency(item.unitPrice)} c/u
-                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] text-slate-400 font-medium">S/</span>
+                        <input
+                          type="number"
+                          step="0.5"
+                          min="0"
+                          value={item.unitPrice}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            updateUnitPrice(item.product.id, isNaN(val) ? 0 : val);
+                          }}
+                          className="w-16 px-1.5 py-0.5 text-[11px] font-bold text-slate-800 bg-white border border-slate-200 rounded-md focus:border-slate-900 focus:outline-none"
+                          title="Modificar precio unitario para este cliente"
+                        />
+                        <span className="text-[10px] text-slate-400 font-medium">c/u</span>
+                      </div>
                     </div>
 
                     <div className="flex items-center gap-2 shrink-0">
@@ -622,6 +681,106 @@ export function PosTerminal({
               </div>
             )}
 
+            {/* Descuento al Cliente */}
+            <div className="p-2.5 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-2">
+              <div
+                onClick={() => setIsDiscountOpen(!isDiscountOpen)}
+                className="flex items-center justify-between cursor-pointer select-none"
+              >
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Tag className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                  <span className="text-xs font-bold text-slate-800">
+                    Descuento al Cliente
+                  </span>
+                  {discountAmount > 0 && (
+                    <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                      -{discountType === 'PERCENT' ? `${discountValue}%` : `S/ ${discountValue.toFixed(2)}`} (-S/ {discountAmount.toFixed(2)})
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-500 font-semibold">
+                    {selectedCustomer ? selectedCustomer.name.split(' ')[0] : 'Opcional'}
+                  </span>
+                  {isDiscountOpen ? (
+                    <ChevronUp className="w-3.5 h-3.5 text-slate-400" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                  )}
+                </div>
+              </div>
+
+              {isDiscountOpen && (
+                <div className="pt-2 border-t border-slate-200/60 space-y-2.5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex rounded-lg bg-slate-200/80 p-0.5 text-[11px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setDiscountType('PERCENT')}
+                        className={`px-2.5 py-1 rounded-md transition ${
+                          discountType === 'PERCENT'
+                            ? 'bg-white text-slate-900 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        % Porcentaje
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountType('FIXED')}
+                        className={`px-2.5 py-1 rounded-md transition ${
+                          discountType === 'FIXED'
+                            ? 'bg-white text-slate-900 shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        S/ Monto Fijo
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 max-w-[130px]">
+                      <span className="text-xs font-bold text-slate-500">
+                        {discountType === 'PERCENT' ? '%' : 'S/'}
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max={discountType === 'PERCENT' ? 100 : rawSubtotal}
+                        step={discountType === 'PERCENT' ? 1 : 0.5}
+                        value={discountValue === 0 ? '' : discountValue}
+                        placeholder="0"
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value) || 0;
+                          setDiscountValue(Math.max(0, val));
+                        }}
+                        className="w-full px-2 py-1 text-xs font-bold rounded-lg border border-slate-300 bg-white text-right focus:ring-1 focus:ring-slate-900 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-5 gap-1 pt-0.5">
+                    {[0, 5, 10, 15, 20].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => {
+                          setDiscountType('PERCENT');
+                          setDiscountValue(pct);
+                        }}
+                        className={`py-1 text-[11px] font-bold rounded-lg border transition ${
+                          discountType === 'PERCENT' && discountValue === pct
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {pct === 0 ? 'Sin desc.' : `${pct}%`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2 pt-2 border-t border-slate-100">
               <div className="grid grid-cols-2 gap-1.5 text-xs font-bold">
                 <button
@@ -681,6 +840,18 @@ export function PosTerminal({
 
           <div className="shrink-0 p-3.5 sm:p-4 border-t border-slate-200 bg-white/95 backdrop-blur-xs space-y-2.5 shadow-[0_-4px_12px_rgba(0,0,0,0.03)]">
             <div className="space-y-1 text-xs">
+              <div className="flex justify-between text-slate-500">
+                <span>Subtotal (Bruto):</span>
+                <span>{formatCurrency(rawSubtotal)}</span>
+              </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+                  <span className="flex items-center gap-1">
+                    <Tag className="w-3 h-3" /> Descuento Especial:
+                  </span>
+                  <span>- {formatCurrency(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-slate-500">
                 <span>Subtotal (Neto):</span>
                 <span>{formatCurrency(totalAmount / 1.18)}</span>

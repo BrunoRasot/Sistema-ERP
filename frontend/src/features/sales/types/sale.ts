@@ -79,6 +79,7 @@ export interface CreateSaleInput {
     operationCode?: string;
   };
   bottlesReturned?: number;
+  discount?: number;
   dueDate?: string;
   notes?: string;
 }
