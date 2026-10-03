@@ -16,8 +16,7 @@ export class ConfigService implements OnModuleInit {
   constructor(private readonly prisma: PrismaService) {}
 
   async onModuleInit() {
-    // Auto-seed defaults if database is empty
-    await this.seedDefaults();
+    // No auto-seed en producción para permitir inicio 100% limpio
   }
 
   async seedDefaults(force = false) {

@@ -287,7 +287,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          {activeTab === 'USERS' ? (
+          {activeTab === 'USERS' && (
             <button
               onClick={() => {
                 setSelectedUserForEdit(null);
@@ -297,14 +297,6 @@ export default function SettingsPage() {
             >
               <UserPlus className="w-4 h-4" />
               <span>Nuevo Usuario</span>
-            </button>
-          ) : (
-            <button
-              onClick={handleSeedDefaults}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs sm:text-sm shadow-md transition active:scale-95"
-            >
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Precargar Datos por Defecto</span>
             </button>
           )}
         </div>
