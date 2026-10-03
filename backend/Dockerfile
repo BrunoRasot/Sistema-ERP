@@ -35,6 +35,10 @@ COPY --from=builder /app/dist ./dist
 # copy the dependency tree produced by the builder instead of assuming a
 # node_modules/.prisma directory exists.
 COPY --from=builder /app/node_modules ./node_modules
+# The migration command runs in the production stage, so it also needs Prisma's
+# schema and configuration files at runtime.
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 10000
 
