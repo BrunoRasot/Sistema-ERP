@@ -52,7 +52,7 @@ jobs:
           DATABASE_URL: postgresql://vivelite_user:ci_test_password_2026@localhost:5433/vivelite_db?schema=public
         run: |
           pnpm exec prisma generate
-          pnpm exec prisma migrate deploy
+          pnpm exec prisma db push
           pnpm prisma:seed
 
       - name: Build Backend
