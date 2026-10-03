@@ -71,21 +71,21 @@ export function Sidebar({
     REPARTIDOR: 'Repartidor',
   };
 
-  // Menú principal (estilo Inbox, Draft, Starred de la referencia)
+  // Menú principal
   const primaryItems = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, badge: null },
-    { name: 'Ventas y Caja', href: '/sales', icon: ShoppingCart, badge: '99' },
-    { name: 'Pedidos y Reparto', href: '/orders', icon: Truck, badge: '5' },
-    { name: 'Control de Bidones', href: '/bottles', icon: RotateCcw, badge: null },
-    { name: 'Clientes', href: '/customers', icon: Users, badge: null },
+    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+    { name: 'Ventas y Caja', href: '/sales', icon: ShoppingCart },
+    { name: 'Pedidos y Reparto', href: '/orders', icon: Truck },
+    { name: 'Control de Bidones', href: '/bottles', icon: RotateCcw },
+    { name: 'Clientes', href: '/customers', icon: Users },
   ];
 
-  // Categorías operativas con puntos de color (exacto a MESSAGE CATEGORIES en la imagen de referencia)
+  // Categorías operativas con accesos directos
   const operationalCategories = [
-    { name: 'En Ruta / Despacho', href: '/orders?status=EN_RUTA', dotColor: '#10B981', count: '9' },
-    { name: 'Cuentas por Cobrar', href: '/payments', dotColor: '#F59E0B', count: '43' },
-    { name: 'Stock Crítico', href: '/products?filter=LOW_STOCK', dotColor: '#EF4444', count: '12' },
-    { name: 'Bidones en Custodia', href: '/bottles', dotColor: '#06B6D4', count: '253' },
+    { name: 'En Ruta / Despacho', href: '/orders?status=EN_RUTA', dotColor: '#10B981' },
+    { name: 'Cuentas por Cobrar', href: '/payments', dotColor: '#F59E0B' },
+    { name: 'Stock Crítico', href: '/products?filter=LOW_STOCK', dotColor: '#EF4444' },
+    { name: 'Bidones en Custodia', href: '/bottles', dotColor: '#06B6D4' },
   ];
 
   // Gestión & Sistema
@@ -217,14 +217,7 @@ export function Sidebar({
                 />
 
                 {!collapsed && (
-                  <>
-                    <span className="flex-1 truncate">{item.name}</span>
-                    {item.badge && (
-                      <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white shadow-xs">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
+                  <span className="flex-1 truncate">{item.name}</span>
                 )}
               </Link>
             );
@@ -256,9 +249,6 @@ export function Sidebar({
                     />
                     <span className="flex-1 truncate text-[11px] text-slate-600 group-hover:text-slate-900">
                       {cat.name}
-                    </span>
-                    <span className="text-[10px] font-medium text-slate-400 group-hover:text-slate-600">
-                      {cat.count}
                     </span>
                   </Link>
                 ))}
