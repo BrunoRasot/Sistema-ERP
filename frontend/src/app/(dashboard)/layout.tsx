@@ -18,7 +18,7 @@ export default function DashboardLayout({
 
   return (
     <ToastProvider>
-      <div className="min-h-screen bg-[#f8fafc] flex flex-col antialiased overflow-x-hidden lg:h-screen lg:overflow-hidden">
+      <div className="min-h-screen bg-[#fafafa] flex flex-col antialiased overflow-x-hidden lg:h-screen lg:overflow-hidden">
       <Sidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed(!collapsed)}

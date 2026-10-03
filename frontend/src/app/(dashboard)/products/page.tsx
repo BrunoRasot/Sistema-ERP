@@ -108,23 +108,23 @@ export default function ProductsPage() {
             <span className="text-xs font-semibold text-slate-500">Productos en Catálogo</span>
             <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{total} SKUs</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50 text-blue-600"><Package className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><Package className="w-4 h-4 sm:w-5 sm:h-5" /></div>
         </div>
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500">Línea Retornable</span>
-            <p className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5">{returnableCount} ítems</p>
+            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{returnableCount} ítems</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50 text-amber-600"><RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" /></div>
         </div>
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-slate-500">Stock Crítico (Alerta)</span>
-            <p className={`text-lg sm:text-xl font-bold mt-0.5 ${lowStockCount > 0 ? 'text-rose-600' : 'text-slate-700'}`}>
+            <p className={`text-lg sm:text-xl font-bold mt-0.5 ${lowStockCount > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
               {lowStockCount} ítems
             </p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-rose-50 text-rose-600"><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
         </div>
       </div>
 
@@ -149,8 +149,8 @@ export default function ProductsPage() {
             onClick={() => setFilterType('ACTIVE')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               filterType === 'ACTIVE'
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
-                : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             Activos
@@ -159,7 +159,7 @@ export default function ProductsPage() {
             onClick={() => setFilterType('INACTIVE')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               filterType === 'INACTIVE'
-                ? 'bg-slate-700 text-white border-slate-700 shadow-xs'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                 : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
@@ -169,8 +169,8 @@ export default function ProductsPage() {
             onClick={() => setFilterType('RETURNABLE')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               filterType === 'RETURNABLE'
-                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <RotateCcw className="w-3.5 h-3.5" /><span>Retornables</span>
@@ -179,8 +179,8 @@ export default function ProductsPage() {
             onClick={() => setFilterType('LOW_STOCK')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               filterType === 'LOW_STOCK'
-                ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             <AlertTriangle className="w-3.5 h-3.5" /><span>Stock Crítico ({lowStockCount})</span>
@@ -324,26 +324,26 @@ export default function ProductsPage() {
                             <button
                               onClick={() => setProductToEdit(product)}
                               title="Modificar precio y detalles del producto"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-[11px] font-bold rounded-lg transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-semibold rounded-lg transition shadow-2xs"
                             >
-                              <Edit3 className="w-3.5 h-3.5" />
+                              <Edit3 className="w-3.5 h-3.5 text-slate-500" />
                               Editar
                             </button>
                             <button
                               onClick={() => setSelectedProductForMovement(product)}
                               title="Ajustar Stock en Kardex"
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded-lg transition"
+                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-[11px] font-semibold rounded-lg transition shadow-2xs"
                             >
-                              <Settings className="w-3.5 h-3.5" />
+                              <Settings className="w-3.5 h-3.5 text-slate-500" />
                               Stock
                             </button>
                             <button
                               onClick={() => handleToggleStatus(product)}
                               title={product.status === 'ACTIVE' ? 'Deshabilitar producto para ventas' : 'Habilitar producto'}
-                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold rounded-lg transition ${
+                              className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border transition shadow-2xs ${
                                 product.status === 'ACTIVE'
-                                  ? 'bg-rose-50 hover:bg-rose-100 text-rose-700'
-                                  : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                                  ? 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                                  : 'bg-slate-900 hover:bg-slate-800 text-white border-slate-900'
                               }`}
                             >
                               <Power className="w-3.5 h-3.5" />

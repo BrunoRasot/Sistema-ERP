@@ -101,7 +101,7 @@ export function UserModal({ isOpen, onClose, onSuccess, userToEdit }: UserModalP
           : 'Registra un nuevo integrante para el sistema'
       }
       icon={isEditing ? <Shield className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
-      iconColor="bg-blue-50 text-blue-600"
+      iconColor="bg-slate-100 text-slate-700"
       size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">

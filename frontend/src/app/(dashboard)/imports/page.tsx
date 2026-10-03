@@ -116,7 +116,7 @@ export default function ImportsPage() {
           <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-black text-xs">
+                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-black text-xs">
                   1
                 </div>
                 <div>
@@ -146,7 +146,7 @@ export default function ImportsPage() {
 
           <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center font-black text-xs">
+              <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-black text-xs">
                 2
               </div>
               <div>
@@ -178,7 +178,7 @@ export default function ImportsPage() {
                   isLoading ||
                   (activeTab === 'CUSTOMERS' ? !customerFile : !productFile)
                 }
-                className="w-full py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-black text-xs sm:text-sm shadow-lg shadow-brand-500/25 transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-xs sm:text-sm shadow-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>

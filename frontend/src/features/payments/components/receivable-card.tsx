@@ -19,9 +19,7 @@ interface ReceivableCardProps {
 export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
   return (
     <div
-      className={`bg-white rounded-3xl border shadow-xs hover:shadow-md transition p-4 sm:p-5 flex flex-col justify-between space-y-4 ${
-        sale.isLate ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'
-      }`}
+      className="bg-white rounded-3xl border border-slate-200/90 shadow-xs hover:shadow-md transition p-4 sm:p-5 flex flex-col justify-between space-y-4"
     >
       <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
@@ -37,15 +35,15 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
         </div>
 
         {sale.isLate ? (
-          <Badge variant="danger" size="sm">
-            <AlertTriangle className="w-3 h-3 mr-0.5 inline" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+            <AlertTriangle className="w-3 h-3 text-slate-500" />
             Mora: {sale.overdueDays}d
-          </Badge>
+          </span>
         ) : (
-          <Badge variant="warning" size="sm">
-            <Clock className="w-3 h-3 mr-0.5 inline" />
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+            <Clock className="w-3 h-3 text-slate-400" />
             Al Día
-          </Badge>
+          </span>
         )}
       </div>
 
@@ -62,9 +60,9 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
             <span className="text-slate-400">Contacto:</span>
             <a
               href={`tel:${sale.customer.phone}`}
-              className="text-blue-600 font-semibold hover:underline flex items-center gap-1"
+              className="text-slate-800 font-semibold hover:underline flex items-center gap-1"
             >
-              <Phone className="w-3 h-3" />
+              <Phone className="w-3 h-3 text-slate-400" />
               <span>{sale.customer.phone}</span>
             </a>
           </div>
@@ -73,11 +71,7 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
         {sale.dueDate && (
           <div className="flex items-center justify-between">
             <span className="text-slate-400">Vencimiento:</span>
-            <span
-              className={`font-semibold ${
-                sale.isLate ? 'text-rose-600 font-bold' : 'text-slate-700'
-              }`}
-            >
+            <span className="font-semibold text-slate-700">
               {formatDate(sale.dueDate)}
             </span>
           </div>
@@ -91,20 +85,20 @@ export function ReceivableCard({ sale, onCollect }: ReceivableCardProps) {
         </div>
         <div className="flex justify-between text-slate-500">
           <span>Abonado a la fecha:</span>
-          <span className="font-semibold text-emerald-600">
+          <span className="font-semibold text-slate-800">
             {formatCurrency(sale.paidAmount)}
           </span>
         </div>
         <div className="pt-2 border-t border-slate-200 flex justify-between items-center text-xs">
           <span className="font-bold text-slate-700">Saldo Pendiente:</span>
-          <span className="font-black text-base text-rose-600">
+          <span className="font-black text-base text-slate-900">
             {formatCurrency(sale.balanceDue)}
           </span>
         </div>
       </div>
 
       <Button
-        variant="success"
+        variant="primary"
         size="md"
         onClick={() => onCollect(sale)}
         icon={<Wallet className="w-4 h-4" />}

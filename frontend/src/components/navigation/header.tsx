@@ -73,10 +73,7 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
           href="/sales"
           title={isShiftOpen ? 'Caja abierta - Clic para ver arqueo' : 'Caja cerrada - Clic para abrir turno'}
           className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-bold shadow-2xs transition-all hover:scale-105',
-            isShiftOpen
-              ? 'bg-emerald-50 border-emerald-200/70 text-emerald-700 hover:bg-emerald-100/60'
-              : 'bg-amber-50 border-amber-200/70 text-amber-700 hover:bg-amber-100/60',
+            'flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-800 hover:bg-slate-50 text-[11px] font-bold shadow-2xs transition-all hover:scale-105',
           )}
         >
           <span

@@ -29,11 +29,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const effectiveLeftIcon = icon || leftIcon;
     const baseStyles =
-      'inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none select-none focus:outline-none focus:ring-2 focus:ring-blue-500/20';
+      'inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none select-none focus:outline-none focus:ring-2 focus:ring-slate-900/15';
 
     const variantStyles = {
       primary:
-        'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-xs shadow-blue-500/20',
+        'bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white shadow-xs',
       secondary:
         'bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700',
       outline:

@@ -54,7 +54,7 @@ export function CloseShiftModal({
       title="Cierre de Caja y Arqueo"
       description="Conciliación de efectivo físico al fin de turno"
       icon={<Wallet className="w-5 h-5" />}
-      iconColor="bg-slate-900 text-white"
+      iconColor="bg-slate-100 text-slate-700"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -71,7 +71,7 @@ export function CloseShiftModal({
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Ventas en Efectivo (+):</span>
-            <span className="font-semibold text-emerald-600">+{formatCurrency(shift.summary?.cashSalesTotal || 0)}</span>
+            <span className="font-semibold text-slate-800">+{formatCurrency(shift.summary?.cashSalesTotal || 0)}</span>
           </div>
           <div className="flex justify-between text-slate-500">
             <span>Ingresos / Egresos Manuales:</span>

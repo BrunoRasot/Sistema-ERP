@@ -129,9 +129,9 @@ export default function BillingPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Aceptados SUNAT</span>
-            <p className="text-lg sm:text-xl font-black text-emerald-600 mt-0.5">{aceptadosSunatCount}</p>
+            <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">{aceptadosSunatCount}</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -139,11 +139,11 @@ export default function BillingPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Facturas / Boletas</span>
-            <p className="text-lg sm:text-xl font-black text-blue-700 mt-0.5">
+            <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
               {facturasCount} F / {boletasCount} B
             </p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50 text-blue-600">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -155,7 +155,7 @@ export default function BillingPage() {
               {formatCurrency(totalBilledAmount)}
             </p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <DollarSign className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -186,8 +186,8 @@ export default function BillingPage() {
                 onClick={() => setInvoiceTypeFilter('BOLETA')}
                 className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   invoiceTypeFilter === 'BOLETA'
-                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                    : 'bg-white text-blue-700 border-blue-200 hover:bg-blue-50'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 Boletas Electrónicas (B001)
@@ -197,8 +197,8 @@ export default function BillingPage() {
                 onClick={() => setInvoiceTypeFilter('FACTURA')}
                 className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   invoiceTypeFilter === 'FACTURA'
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                    : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
                 Facturas Electrónicas (F001)
@@ -238,11 +238,7 @@ export default function BillingPage() {
                         <div className="flex items-center gap-2">
                           <span className="font-black text-sm text-slate-900">{docNum}</span>
                           <span
-                            className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
-                              doc.invoiceType === 'FACTURA'
-                                ? 'bg-indigo-100 text-indigo-700'
-                                : 'bg-brand-100 text-brand-700'
-                            }`}
+                            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-100 text-slate-700"
                           >
                             {doc.invoiceType}
                           </span>
@@ -296,12 +292,12 @@ export default function BillingPage() {
         <div className="flex-1 min-h-0 flex flex-col space-y-3">
           {loadingUninvoiced ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-slate-600" />
               <span className="text-xs font-semibold">Cargando ventas pendientes...</span>
             </div>
           ) : uninvoicedSales.length === 0 ? (
             <div className="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200 p-8 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-800">¡Al día! No hay ventas pendientes</h3>
@@ -333,14 +329,14 @@ export default function BillingPage() {
 
                   <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 flex justify-between items-center text-xs">
                     <span className="font-bold text-slate-500">Importe a Facturar:</span>
-                    <span className="font-black text-base text-brand-700">
+                    <span className="font-black text-base text-slate-900">
                       {formatCurrency(sale.total)}
                     </span>
                   </div>
 
                   <button
                     onClick={() => setSaleToInvoice(sale)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-600/20 transition active:scale-95 flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5"
                   >
                     <Receipt className="w-4 h-4" />
                     <span>Emitir Boleta / Factura</span>

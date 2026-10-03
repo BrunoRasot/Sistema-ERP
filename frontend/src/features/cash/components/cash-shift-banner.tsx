@@ -25,34 +25,24 @@ export function CashShiftBanner({
 
   return (
     <>
-      <div
-        className={`p-3.5 rounded-2xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-          isShiftOpen
-            ? 'bg-emerald-50/70 border-emerald-200 text-emerald-950'
-            : 'bg-amber-50 border-amber-200 text-amber-950'
-        }`}
-      >
+      <div className="p-3.5 rounded-2xl border border-slate-200/80 bg-white shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-slate-900">
         <div className="flex items-center gap-3">
-          <div
-            className={`p-2.5 rounded-xl ${
-              isShiftOpen ? 'bg-emerald-500 text-white' : 'bg-amber-500 text-white'
-            }`}
-          >
-            {isShiftOpen ? <Unlock className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+          <div className="p-2.5 rounded-xl bg-slate-100 text-slate-700">
+            {isShiftOpen ? <Unlock className="w-5 h-5 text-emerald-600" /> : <Lock className="w-5 h-5 text-slate-500" />}
           </div>
 
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-black text-xs uppercase tracking-wider">
+              <span className="font-bold text-xs uppercase tracking-wider text-slate-900">
                 {isShiftOpen ? 'Turno de Caja Abierto' : 'Caja Cerrada actualmente'}
               </span>
               <span
                 className={`w-2 h-2 rounded-full ${
-                  isShiftOpen ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                  isShiftOpen ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'
                 }`}
               ></span>
             </div>
-            <p className="text-xs text-slate-600 font-medium">
+            <p className="text-xs text-slate-500 font-medium">
               {isShiftOpen
                 ? `${shift.cashRegister?.name || 'Caja Principal'} — Efectivo esperado: ${formatCurrency(
                     shift.summary?.expectedCashInBox || shift.initialBalance,
@@ -66,14 +56,14 @@ export function CashShiftBanner({
           {isShiftOpen ? (
             <button
               onClick={() => setIsCloseModalActive(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
             >
               Cerrar Caja / Arqueo
             </button>
           ) : (
             <button
               onClick={() => setIsOpenModalActive(true)}
-              className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-sm"
+              className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs"
             >
               Abrir Turno de Caja
             </button>

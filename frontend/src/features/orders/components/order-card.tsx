@@ -110,7 +110,7 @@ export function OrderCard({
 
       <div className="space-y-2 text-xs">
         <div className="flex items-start gap-2 text-slate-600">
-          <MapPin className="w-4 h-4 text-brand-600 shrink-0 mt-0.5" />
+          <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-slate-800 leading-tight">
               {order.deliveryAddress}
@@ -128,7 +128,7 @@ export function OrderCard({
             <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <a
               href={`tel:${order.customer.phone}`}
-              className="text-brand-600 hover:underline font-semibold"
+              className="text-slate-800 hover:underline font-semibold"
             >
               {order.customer.phone}
             </a>
@@ -143,8 +143,8 @@ export function OrderCard({
             Productos ({order.items?.length || 0})
           </span>
           {returnableCount > 0 && (
-            <span className="flex items-center gap-1 text-amber-700">
-              <RotateCcw className="w-3 h-3" />
+            <span className="flex items-center gap-1 text-slate-700">
+              <RotateCcw className="w-3.5 h-3.5" />
               {returnableCount} bidón(es)
             </span>
           )}
@@ -165,7 +165,7 @@ export function OrderCard({
 
         <div className="pt-2 border-t border-slate-200/60 flex justify-between items-center text-xs">
           <span className="font-bold text-slate-500">Total a Cobrar:</span>
-          <span className="font-black text-sm text-brand-700">
+          <span className="font-black text-sm text-slate-900">
             {formatCurrency(order.total)}
           </span>
         </div>
@@ -191,7 +191,7 @@ export function OrderCard({
         {order.status !== 'ENTREGADO' && order.status !== 'CANCELADO' && (
           <button
             onClick={() => onAssignDriver(order)}
-            className="text-[11px] font-bold text-blue-600 hover:text-blue-800"
+            className="text-[11px] font-bold text-slate-800 hover:text-slate-950 underline"
           >
             {order.driver ? 'Cambiar Chofer' : 'Asignar Chofer'}
           </button>
@@ -205,7 +205,7 @@ export function OrderCard({
             variant="primary"
             onClick={() => onUpdateStatus(order, 'CONFIRMADO')}
             icon={<CheckCircle2 className="w-3.5 h-3.5" />}
-            className="flex-1 bg-sky-600 hover:bg-sky-700"
+            className="flex-1"
           >
             Confirmar Pedido
           </Button>
@@ -217,7 +217,7 @@ export function OrderCard({
             variant="primary"
             onClick={() => onUpdateStatus(order, 'PREPARANDO')}
             icon={<Package className="w-3.5 h-3.5" />}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700"
+            className="flex-1"
           >
             Preparar en Almacén
           </Button>
@@ -229,7 +229,7 @@ export function OrderCard({
             variant="primary"
             onClick={() => onUpdateStatus(order, 'EN_RUTA')}
             icon={<Truck className="w-3.5 h-3.5" />}
-            className="flex-1 bg-purple-600 hover:bg-purple-700"
+            className="flex-1"
           >
             Despachar a Ruta
           </Button>
@@ -238,10 +238,10 @@ export function OrderCard({
         {order.status === 'EN_RUTA' && (
           <Button
             size="sm"
-            variant="success"
+            variant="primary"
             onClick={() => onDeliver(order)}
             icon={<CheckCircle2 className="w-4 h-4 stroke-[3]" />}
-            className="flex-1 font-black shadow-md shadow-emerald-600/25"
+            className="flex-1 font-bold shadow-xs"
           >
             Cobrar y Entregar
           </Button>

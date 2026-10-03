@@ -132,7 +132,7 @@ export default function BottlesPage() {
           </button>
           <button
             onClick={handleOpenPlantModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold shadow-xs transition active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-xs transition active:scale-95"
           >
             <Sliders className="w-3.5 h-3.5" />
             <span>Ajustar Stock Planta</span>
@@ -144,12 +144,12 @@ export default function BottlesPage() {
         <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">En Custodia (Clientes)</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-amber-50 text-amber-600">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
               <Users className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-amber-600">
+            <p className="text-lg sm:text-xl font-bold text-slate-900">
               {summary?.totalInCustomers ?? 0}
               <span className="text-xs font-medium text-slate-400 ml-1">bidones</span>
             </p>
@@ -162,12 +162,12 @@ export default function BottlesPage() {
         <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Llenos en Planta (Stock)</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-emerald-50 text-emerald-600">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-emerald-600">
+            <p className="text-lg sm:text-xl font-bold text-slate-900">
               {summary?.totalFullInPlant ?? (plantStock?.totalFull || 0)}
               <span className="text-xs font-medium text-slate-400 ml-1">llenos</span>
             </p>
@@ -178,12 +178,12 @@ export default function BottlesPage() {
         <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Vacíos en Planta</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-cyan-50 text-cyan-600">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
               <Package className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-cyan-700">
+            <p className="text-lg sm:text-xl font-bold text-slate-900">
               {summary?.totalEmptyInPlant ?? (plantStock?.totalEmpty || 0)}
               <span className="text-xs font-medium text-slate-400 ml-1">vacíos</span>
             </p>
@@ -194,12 +194,12 @@ export default function BottlesPage() {
         <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Parque Total de Envases</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-blue-50 text-blue-600">
+            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
               <Layers className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-blue-700">
+            <p className="text-lg sm:text-xl font-bold text-slate-900">
               {summary?.totalBottlesInCirculation ?? 0}
               <span className="text-xs font-medium text-slate-400 ml-1">total</span>
             </p>
@@ -213,7 +213,7 @@ export default function BottlesPage() {
           onClick={() => setActiveTab('CLIENTS')}
           className={`pb-2.5 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition ${
             activeTab === 'CLIENTS'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-slate-900 text-slate-900'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -225,7 +225,7 @@ export default function BottlesPage() {
           onClick={() => setActiveTab('KARDEX')}
           className={`pb-2.5 text-xs sm:text-sm font-bold flex items-center gap-2 border-b-2 transition ${
             activeTab === 'KARDEX'
-              ? 'border-blue-600 text-blue-600'
+              ? 'border-slate-900 text-slate-900'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
@@ -297,16 +297,16 @@ export default function BottlesPage() {
                         </span>
                       )}
                       {c.subchannel && (
-                        <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 font-semibold">
+                        <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold">
                           {c.subchannel}
                         </span>
                       )}
                     </div>
                     <button
                       onClick={() => setSelectedCustomerForBottles(c)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs transition active:scale-95"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-95"
                     >
-                      <RotateCcw className="w-3.5 h-3.5" />
+                      <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
                       <span>Movimiento</span>
                     </button>
                   </div>
@@ -374,7 +374,7 @@ export default function BottlesPage() {
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {c.subchannel ? (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-blue-50 text-blue-700">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
                               {c.subchannel}
                             </span>
                           ) : (
@@ -395,9 +395,9 @@ export default function BottlesPage() {
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <button
                             onClick={() => setSelectedCustomerForBottles(c)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs transition"
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition shadow-2xs"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
+                            <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
                             <span>Movimiento</span>
                           </button>
                         </td>
@@ -487,7 +487,7 @@ export default function BottlesPage() {
                         })}
                       </span>
                       {tx.sale ? (
-                        <span className="font-mono font-semibold text-blue-600">
+                        <span className="font-mono font-semibold text-slate-800">
                           Venta: {tx.sale.saleNumber}
                         </span>
                       ) : tx.notes ? (
@@ -584,7 +584,7 @@ export default function BottlesPage() {
                           </td>
                           <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                             {tx.sale ? (
-                              <span className="font-mono text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">
+                              <span className="font-mono text-xs font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
                                 Venta: {tx.sale.saleNumber}
                               </span>
                             ) : tx.notes ? (

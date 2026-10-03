@@ -140,9 +140,9 @@ export default function OrdersPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">En Ruta / Despacho</span>
-            <p className="text-lg sm:text-xl font-bold text-purple-600 mt-0.5">{enRutaCount}</p>
+            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{enRutaCount}</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-purple-50 text-purple-600">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -150,9 +150,9 @@ export default function OrdersPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Pendientes</span>
-            <p className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5">{pendientesCount}</p>
+            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{pendientesCount}</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50 text-amber-600">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -160,9 +160,9 @@ export default function OrdersPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Entregados Hoy</span>
-            <p className="text-lg sm:text-xl font-bold text-emerald-600 mt-0.5">{entregadosCount}</p>
+            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{entregadosCount}</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
             <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         </div>
@@ -314,7 +314,7 @@ export default function OrdersPage() {
                               <button
                                 onClick={() => setOrderToAssignDriver(order)}
                                 title="Asignar Repartidor"
-                                className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold rounded-lg transition"
+                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-2xs"
                               >
                                 <Truck className="w-3.5 h-3.5" />
                               </button>
@@ -323,7 +323,7 @@ export default function OrdersPage() {
                               <button
                                 onClick={() => setOrderToDeliver(order)}
                                 title="Confirmar Entrega"
-                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition"
+                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-2xs"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
                               </button>
@@ -332,7 +332,7 @@ export default function OrdersPage() {
                               <button
                                 onClick={() => handleUpdateStatus(order, 'CANCELADO')}
                                 title="Cancelar Pedido"
-                                className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-[11px] font-bold rounded-lg transition"
+                                className="px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[11px] font-bold rounded-lg transition shadow-2xs"
                               >
                                 ✕
                               </button>

@@ -196,7 +196,7 @@ export default function SalesPage() {
                   {formatCurrency(totalSalesAmount)}
                 </p>
               </div>
-              <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50 text-blue-600">
+              <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
                 <Receipt className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
@@ -204,11 +204,11 @@ export default function SalesPage() {
             <div className="card p-3 sm:p-3.5 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-slate-500">Cobrado en Caja</span>
-                <p className="text-lg sm:text-xl font-bold text-emerald-600 mt-0.5">
+                <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
                   {formatCurrency(totalPaidAmount)}
                 </p>
               </div>
-              <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+              <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
                 <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
@@ -216,11 +216,11 @@ export default function SalesPage() {
             <div className="card p-3 sm:p-3.5 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-slate-500">Por Cobrar (Crédito)</span>
-                <p className="text-lg sm:text-xl font-bold text-rose-600 mt-0.5">
+                <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
                   {formatCurrency(totalBalanceDue)}
                 </p>
               </div>
-              <div className="p-2 sm:p-2.5 rounded-xl bg-rose-50 text-rose-600">
+              <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
                 <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
             </div>
@@ -234,7 +234,7 @@ export default function SalesPage() {
                 value={searchSale}
                 onChange={(e) => setSearchSale(e.target.value)}
                 placeholder="Buscar por comprobante (ej: VTA-2026-00001) o cliente..."
-                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500 bg-slate-50 focus:bg-white transition"
+                className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10 bg-slate-50 focus:bg-white transition"
               />
             </div>
 
@@ -264,7 +264,7 @@ export default function SalesPage() {
                 type="button"
                 onClick={handleExportExcel}
                 disabled={isExporting}
-                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition disabled:opacity-50"
               >
                 {isExporting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -290,7 +290,7 @@ export default function SalesPage() {
               </p>
               <button
                 onClick={() => setActiveTab('POS')}
-                className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-brand-700"
+                className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl shadow-xs hover:bg-slate-800 transition"
               >
                 <ShoppingCart className="w-4 h-4" />
                 <span>Ir al Punto de Venta</span>
@@ -324,7 +324,7 @@ export default function SalesPage() {
                           {sale.saleType}
                         </span>
                         {sale.subchannel && (
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
                             {sale.subchannel}
                           </span>
                         )}
@@ -334,7 +334,7 @@ export default function SalesPage() {
                           </span>
                         )}
                         {sale.bottleCondition20L && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200">
                             20L: {sale.bottleCondition20L}
                           </span>
                         )}
@@ -369,7 +369,7 @@ export default function SalesPage() {
                           {formatCurrency(sale.total)}
                         </span>
                         {sale.balanceDue > 0 && (
-                          <span className="text-[10px] font-bold text-rose-600 block">
+                          <span className="text-[10px] font-bold text-slate-900 block">
                             Debe: {formatCurrency(sale.balanceDue)}
                           </span>
                         )}
@@ -377,10 +377,10 @@ export default function SalesPage() {
 
                       <button
                         onClick={() => setSelectedSaleForDetail(sale)}
-                        className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                        className="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs transition"
                         title="Ver detalle"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-4 h-4 text-slate-500" />
                       </button>
                     </div>
                   </div>

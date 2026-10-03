@@ -115,23 +115,23 @@ export default function PaymentsPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Deuda Vencida (Mora)</span>
-            <p className="text-lg sm:text-xl font-black text-rose-600 mt-0.5">{formatCurrency(metrics.overdueDebt)}</p>
+            <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">{formatCurrency(metrics.overdueDebt)}</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-rose-50 text-rose-600"><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
         </div>
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Clientes con Deuda</span>
-            <p className="text-lg sm:text-xl font-black text-amber-600 mt-0.5">{metrics.debtorsCount} clientes</p>
+            <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">{metrics.debtorsCount} clientes</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50 text-amber-600"><Users className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><Users className="w-4 h-4 sm:w-5 sm:h-5" /></div>
         </div>
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Cobrado este Mes</span>
-            <p className="text-lg sm:text-xl font-black text-emerald-600 mt-0.5">{formatCurrency(metrics.collectedThisMonth)}</p>
+            <p className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">{formatCurrency(metrics.collectedThisMonth)}</p>
           </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600"><TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><TrendingUp className="w-4 h-4 sm:w-5 sm:h-5" /></div>
         </div>
       </div>
 
@@ -158,31 +158,31 @@ export default function PaymentsPage() {
                 onClick={() => setFilterType('OVERDUE')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   filterType === 'OVERDUE'
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
-                    : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                <AlertTriangle className="w-3.5 h-3.5" /><span>Vencidas / En Mora</span>
+                <AlertTriangle className="w-3.5 h-3.5 text-slate-400" /><span>Vencidas / En Mora</span>
               </button>
               <button
                 onClick={() => setFilterType('PENDING')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   filterType === 'PENDING'
-                    ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                    : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5" /><span>Sin Abonos</span>
+                <Clock className="w-3.5 h-3.5 text-slate-400" /><span>Sin Abonos</span>
               </button>
               <button
                 onClick={() => setFilterType('PARTIAL')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
                   filterType === 'PARTIAL'
-                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                    : 'bg-white text-indigo-700 border-indigo-200 hover:bg-slate-50'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                <CheckCircle2 className="w-3.5 h-3.5" /><span>Con Abonos Parciales</span>
+                <CheckCircle2 className="w-3.5 h-3.5 text-slate-400" /><span>Con Abonos Parciales</span>
               </button>
             </div>
           </div>
@@ -248,11 +248,11 @@ export default function PaymentsPage() {
                             <td className="px-4 py-3 text-right font-bold text-slate-900 whitespace-nowrap">
                               {formatCurrency(sale.total)}
                             </td>
-                            <td className="px-4 py-3 text-right text-emerald-600 font-semibold whitespace-nowrap">
+                            <td className="px-4 py-3 text-right text-slate-800 font-semibold whitespace-nowrap">
                               {formatCurrency(sale.paidAmount)}
                             </td>
                             <td className="px-4 py-3 text-right whitespace-nowrap">
-                              <span className={`font-black text-sm ${sale.isLate ? 'text-rose-600' : 'text-amber-600'}`}>
+                              <span className="font-black text-sm text-slate-900">
                                 {formatCurrency(sale.balanceDue)}
                               </span>
                             </td>
@@ -261,8 +261,8 @@ export default function PaymentsPage() {
                             </td>
                             <td className="px-4 py-3 text-center whitespace-nowrap">
                               {sale.isLate ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 font-bold text-[10px]">
-                                  <AlertTriangle className="w-3 h-3" />
+                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 font-bold text-[10px]">
+                                  <AlertTriangle className="w-3 h-3 text-slate-500" />
                                   {sale.overdueDays}d
                                 </span>
                               ) : (
@@ -272,7 +272,7 @@ export default function PaymentsPage() {
                             <td className="px-4 py-3 text-center whitespace-nowrap">
                               <button
                                 onClick={() => setSaleToCollect(sale)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition shadow-xs"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-xs"
                               >
                                 <DollarSign className="w-3 h-3" />
                                 Cobrar

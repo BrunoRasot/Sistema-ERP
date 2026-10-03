@@ -369,12 +369,12 @@ export function PosTerminal({
                     isOutOfStock
                       ? 'opacity-40 bg-slate-100 border-slate-200 cursor-not-allowed'
                       : inCart
-                      ? 'bg-blue-50/60 border-blue-300 shadow-xs'
-                      : 'bg-white border-slate-200 hover:border-blue-300 hover:shadow-xs'
+                      ? 'bg-slate-50 border-slate-900 shadow-xs'
+                      : 'bg-white border-slate-200 hover:border-slate-400 hover:shadow-xs'
                   }`}
                 >
                   {inCart && (
-                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-black flex items-center justify-center shadow-xs">
+                    <span className="absolute top-2 right-2 w-5 h-5 rounded-full bg-slate-900 text-white text-[10px] font-black flex items-center justify-center shadow-xs">
                       {inCart.quantity}
                     </span>
                   )}
@@ -389,7 +389,7 @@ export function PosTerminal({
                   </div>
 
                   <div className="pt-2 flex items-center justify-between">
-                    <span className="text-sm font-black text-blue-700">
+                    <span className="text-sm font-black text-slate-900">
                       {formatCurrency(product.price)}
                     </span>
                     <span className="text-[10px] text-slate-400 font-medium">
@@ -405,7 +405,7 @@ export function PosTerminal({
         <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col min-h-0 lg:h-full overflow-hidden">
           <div className="shrink-0 p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between">
             <h2 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
-              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+              <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
               <span>Ticket de Venta</span>
             </h2>
             {cart.length > 0 && (
@@ -640,8 +640,8 @@ export function PosTerminal({
                   onClick={() => setSaleType('CREDITO')}
                   className={`py-1.5 rounded-xl border transition ${
                     saleType === 'CREDITO'
-                      ? 'bg-indigo-600 text-white border-indigo-600'
-                      : 'bg-white text-slate-600 border-slate-200'
+                      ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                   }`}
                 >
                   A Crédito
@@ -657,8 +657,8 @@ export function PosTerminal({
                       onClick={() => setPaymentMethod(m)}
                       className={`p-2 rounded-xl border text-[11px] font-bold transition text-center ${
                         paymentMethod === m
-                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                          : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
                       {m}
@@ -673,7 +673,7 @@ export function PosTerminal({
                   value={operationCode}
                   onChange={(e) => setOperationCode(e.target.value)}
                   placeholder="Código de Operación Yape/Plin (opcional)"
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                 />
               )}
             </div>
@@ -691,14 +691,14 @@ export function PosTerminal({
               </div>
               <div className="flex justify-between text-base font-black text-slate-900 pt-1 border-t border-slate-100">
                 <span>Total a Cobrar:</span>
-                <span className="text-xl text-blue-600">{formatCurrency(totalAmount)}</span>
+                <span className="text-xl text-slate-900">{formatCurrency(totalAmount)}</span>
               </div>
             </div>
 
             <button
               onClick={handleSubmitSale}
               disabled={isLoading || cart.length === 0}
-              className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm shadow-md shadow-blue-500/20 transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-black text-sm shadow-xs transition active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

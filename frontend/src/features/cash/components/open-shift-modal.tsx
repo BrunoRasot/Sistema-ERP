@@ -52,7 +52,7 @@ export function OpenShiftModal({
       title="Aperturar Turno de Caja"
       description="Ingresar saldo inicial en efectivo para sencillo"
       icon={<Wallet className="w-5 h-5" />}
-      iconColor="bg-emerald-50 text-emerald-600"
+      iconColor="bg-slate-100 text-slate-700"
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -95,7 +95,7 @@ export function OpenShiftModal({
           </Button>
           <Button
             type="submit"
-            variant="success"
+            variant="primary"
             isLoading={isLoading}
             leftIcon={<Check className="w-4 h-4" />}
             className="w-1/2"

@@ -102,7 +102,7 @@ export default function DashboardPage() {
         {metrics.isShiftOpen ? (
           <Link
             href="/sales"
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200/70 text-emerald-800 text-xs font-semibold transition-all hover:bg-emerald-100/60 shadow-2xs self-start sm:self-auto"
+            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 shadow-2xs self-start sm:self-auto"
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <div>
@@ -117,11 +117,11 @@ export default function DashboardPage() {
         ) : (
           <Link
             href="/sales"
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-amber-50 border border-amber-200/70 text-amber-800 text-xs font-semibold transition-all hover:bg-amber-100/60 shadow-2xs self-start sm:self-auto"
+            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 shadow-2xs self-start sm:self-auto"
           >
-            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <span className="w-2 h-2 rounded-full bg-slate-400" />
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600 block leading-tight">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block leading-tight">
                 Turno Cerrado
               </span>
               <span className="text-xs font-bold text-slate-900 leading-tight">
@@ -136,7 +136,7 @@ export default function DashboardPage() {
         <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Ventas Hoy</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -153,12 +153,12 @@ export default function DashboardPage() {
         <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500">En Ruta</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
               <Truck className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-blue-600">
+            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
               {metrics.activeOrdersCount}
             </p>
             <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
@@ -170,12 +170,12 @@ export default function DashboardPage() {
         <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Bidones Prestados</span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
               <RotateCcw className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-amber-600">
+            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
               {metrics.bottlesInHolding} unid.
             </p>
             <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
@@ -187,12 +187,12 @@ export default function DashboardPage() {
         <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
           <div className="flex items-center justify-between">
             <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Por Cobrar</span>
-            <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-rose-600">
+            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
               {formatCurrency(metrics.totalPendingDebt)}
             </p>
             <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
@@ -209,8 +209,8 @@ export default function DashboardPage() {
               <h2 className="text-sm font-bold text-slate-900">Ventas de los Últimos 7 Días</h2>
               <p className="text-xs text-slate-400">Ingresos consolidados por jornada</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg">
-              <TrendingUp className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-800 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-lg">
+              <TrendingUp className="w-3.5 h-3.5 text-slate-600" />
               <span>Semana: {formatCurrency(weeklyTotal)}</span>
             </span>
           </div>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                   </span>
                   <div className="w-full max-w-[42px] bg-slate-100 rounded-t-lg flex items-end overflow-hidden h-36">
                     <div
-                      className="w-full bg-blue-600 rounded-t-lg transition-all duration-300 group-hover:bg-blue-700"
+                      className="w-full bg-slate-800 rounded-t-lg transition-all duration-300 group-hover:bg-slate-900"
                       style={{ height: `${heightPercent}%` }}
                       title={`${day.day}: ${formatCurrency(day.total)}`}
                     />
@@ -244,9 +244,9 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-2.5">
               <Link
                 href="/sales"
-                className="p-3 rounded-xl border border-blue-200/60 bg-blue-50/50 hover:bg-blue-100/60 transition-all flex flex-col items-start gap-2 group"
+                className="p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 transition-all flex flex-col items-start gap-2 group"
               >
-                <div className="p-2 rounded-lg bg-blue-600 text-white shadow-xs group-hover:scale-105 transition-transform">
+                <div className="p-2 rounded-lg bg-slate-900 text-white shadow-xs group-hover:scale-105 transition-transform">
                   <PlusCircle className="w-4 h-4" />
                 </div>
                 <div>

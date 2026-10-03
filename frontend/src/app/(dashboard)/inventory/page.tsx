@@ -102,7 +102,7 @@ export default function InventoryPage() {
 
         <div className="card p-3 sm:p-3.5">
           <span className="text-xs font-semibold text-slate-500">Valor Proyectado Venta</span>
-          <p className="text-lg sm:text-xl font-bold text-blue-600 mt-0.5">
+          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
             {formatCurrency(summary?.totalValuedAtPrice || 0)}
           </p>
           <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
@@ -122,7 +122,7 @@ export default function InventoryPage() {
 
         <div className="card p-3 sm:p-3.5">
           <span className="text-xs font-semibold text-slate-500">Bidones Llenos en Planta</span>
-          <p className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5">
+          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
             {summary?.returnableUnitsInWarehouse || 0} unid.
           </p>
           <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
@@ -143,7 +143,7 @@ export default function InventoryPage() {
             onClick={() => setMovementFilter('')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               movementFilter === ''
-                ? 'bg-slate-900 text-white border-slate-900'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
                 : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
@@ -153,8 +153,8 @@ export default function InventoryPage() {
             onClick={() => setMovementFilter('ENTRADA')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               movementFilter === 'ENTRADA'
-                ? 'bg-emerald-600 text-white border-emerald-600'
-                : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             Entradas (Producción)
@@ -163,8 +163,8 @@ export default function InventoryPage() {
             onClick={() => setMovementFilter('SALIDA')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               movementFilter === 'SALIDA'
-                ? 'bg-rose-600 text-white border-rose-600'
-                : 'bg-white text-rose-700 border-rose-200 hover:bg-rose-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             Salidas
@@ -173,8 +173,8 @@ export default function InventoryPage() {
             onClick={() => setMovementFilter('AJUSTE')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               movementFilter === 'AJUSTE'
-                ? 'bg-indigo-600 text-white border-indigo-600'
-                : 'bg-white text-indigo-700 border-indigo-200 hover:bg-indigo-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             Ajustes de Conteo
@@ -183,8 +183,8 @@ export default function InventoryPage() {
             onClick={() => setMovementFilter('MERMA')}
             className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
               movementFilter === 'MERMA'
-                ? 'bg-amber-600 text-white border-amber-600'
-                : 'bg-white text-amber-700 border-amber-200 hover:bg-amber-50'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
             Mermas
