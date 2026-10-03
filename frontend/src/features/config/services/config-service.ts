@@ -7,9 +7,21 @@ import {
   BottleStock,
   BottleSummary,
   GlobalBottleTransaction,
+  CompanyInfo,
 } from '../types/config';
 
 export const configService = {
+  async getCompany(): Promise<CompanyInfo> {
+    return apiClient<CompanyInfo>('/config/company');
+  },
+
+  async updateCompany(data: Partial<CompanyInfo>): Promise<CompanyInfo> {
+    return apiClient<CompanyInfo>('/config/company', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
   async getBottleSummary(): Promise<BottleSummary> {
     return apiClient<BottleSummary>('/config/bottles/summary');
   },

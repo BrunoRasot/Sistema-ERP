@@ -28,7 +28,7 @@ import {
   Power,
 } from 'lucide-react';
 import { configService } from '@/features/config/services/config-service';
-import { Zone, District, SubChannel, BottleCondition } from '@/features/config/types/config';
+import { Zone, District, SubChannel, BottleCondition, CompanyInfo } from '@/features/config/types/config';
 import { userService } from '@/features/users/services/user-service';
 import { SystemUser } from '@/features/users/types/user';
 import { UserModal } from '@/features/users/components/user-modal';
@@ -87,6 +87,34 @@ export default function SettingsPage() {
     queryFn: () => configService.getBottleConditions(),
   });
 
+  const { data: companyData, refetch: refetchCompany } = useQuery({
+    queryKey: ['settings-company'],
+    queryFn: () => configService.getCompany(),
+  });
+
+  const [companyForm, setCompanyForm] = useState<Partial<CompanyInfo>>({});
+  const [isSavingCompany, setIsSavingCompany] = useState(false);
+
+  React.useEffect(() => {
+    if (companyData) {
+      setCompanyForm(companyData);
+    }
+  }, [companyData]);
+
+  const handleSaveCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingCompany(true);
+    try {
+      await configService.updateCompany(companyForm);
+      refetchCompany();
+      showNotification('Información de la empresa guardada exitosamente');
+    } catch (err: any) {
+      showNotification('Error al guardar datos de la empresa: ' + (err?.message || 'Error de conexión'), 'error');
+    } finally {
+      setIsSavingCompany(false);
+    }
+  };
+
   const users: SystemUser[] = Array.isArray(usersData)
     ? usersData
     : Array.isArray((usersData as any)?.data)
@@ -141,20 +169,6 @@ export default function SettingsPage() {
       showNotification('Usuario eliminado del sistema');
     } catch (err: any) {
       showNotification('Error al eliminar usuario: ' + err.message, 'error');
-    }
-  };
-
-  // Actions
-  const handleSeedDefaults = async () => {
-    try {
-      await configService.seedDefaults();
-      refetchZones();
-      refetchDistricts();
-      refetchSubchannels();
-      refetchConditions();
-      showNotification('¡Datos de configuración sembrados correctamente!');
-    } catch (err: any) {
-      showNotification('Error al sembrar datos: ' + err.message, 'error');
     }
   };
 
@@ -869,13 +883,15 @@ export default function SettingsPage() {
             Datos de la Distribuidora
           </h3>
 
-          <div className="space-y-4 pt-2">
+          <form onSubmit={handleSaveCompany} className="space-y-4 pt-2">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Razón Social</label>
               <input
                 type="text"
-                defaultValue="VIVELITE S.A.C."
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900"
+                value={companyForm.razonSocial || ''}
+                onChange={(e) => setCompanyForm({ ...companyForm, razonSocial: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                required
               />
             </div>
 
@@ -884,8 +900,10 @@ export default function SettingsPage() {
                 <label className="block text-xs font-semibold text-slate-600 mb-1">RUC</label>
                 <input
                   type="text"
-                  defaultValue="20608945612"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 font-mono"
+                  value={companyForm.ruc || ''}
+                  onChange={(e) => setCompanyForm({ ...companyForm, ruc: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                  required
                 />
               </div>
 
@@ -893,8 +911,9 @@ export default function SettingsPage() {
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Teléfono / WhatsApp</label>
                 <input
                   type="text"
-                  defaultValue="+51 987 654 321"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900"
+                  value={companyForm.phone || ''}
+                  onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
                 />
               </div>
             </div>
@@ -903,21 +922,54 @@ export default function SettingsPage() {
               <label className="block text-xs font-semibold text-slate-600 mb-1">Dirección de Planta / Matriz</label>
               <input
                 type="text"
-                defaultValue="Av. Principal s/n, Salas - Guadalupe, Ica, Perú"
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900"
+                value={companyForm.address || ''}
+                onChange={(e) => setCompanyForm({ ...companyForm, address: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                required
               />
             </div>
 
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Distrito</label>
+                <input
+                  type="text"
+                  value={companyForm.district || ''}
+                  onChange={(e) => setCompanyForm({ ...companyForm, district: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Provincia</label>
+                <input
+                  type="text"
+                  value={companyForm.province || ''}
+                  onChange={(e) => setCompanyForm({ ...companyForm, province: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Departamento</label>
+                <input
+                  type="text"
+                  value={companyForm.department || ''}
+                  onChange={(e) => setCompanyForm({ ...companyForm, department: e.target.value })}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600"
+                />
+              </div>
+            </div>
+
             <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => showNotification('Información de empresa guardada')}
-                className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-brand-600/20 transition"
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={isSavingCompany}
+                isLoading={isSavingCompany}
               >
                 Guardar Configuración
-              </button>
+              </Button>
             </div>
-          </div>
+          </form>
         </div>
       )}
 

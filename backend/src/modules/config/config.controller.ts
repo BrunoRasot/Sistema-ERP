@@ -166,4 +166,16 @@ export class ConfigController {
   updateBottleStock(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBottleStockDto) {
     return this.configService.updateBottleStock(id, dto);
   }
+
+  @Get('company')
+  @ApiOperation({ summary: 'Obtener información fiscal y datos de contacto de la empresa' })
+  getCompany() {
+    return this.configService.getCompany();
+  }
+
+  @Patch('company')
+  @ApiOperation({ summary: 'Actualizar información fiscal y datos de contacto de la empresa' })
+  updateCompany(@Body() dto: any) {
+    return this.configService.updateCompany(dto);
+  }
 }

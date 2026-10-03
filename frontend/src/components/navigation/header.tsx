@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Droplets, Bell } from 'lucide-react';
+import { Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { cashService } from '@/features/cash/services/cash-service';
 
@@ -87,14 +87,6 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
           />
           <span>{isShiftOpen ? 'Caja Abierta' : 'Caja Cerrada'}</span>
         </Link>
-
-        <button
-          title="Notificaciones"
-          className="relative p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors active:scale-95"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-blue-600 ring-2 ring-white" />
-        </button>
       </div>
     </header>
   );

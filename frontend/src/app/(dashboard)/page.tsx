@@ -85,6 +85,7 @@ export default function DashboardPage() {
 
   const { metrics, weeklyChart, recentOrders, recentSales } = stats;
   const maxChartValue = Math.max(...weeklyChart.map((d: any) => d.total), 1);
+  const weeklyTotal = weeklyChart.reduce((acc: number, d: any) => acc + (Number(d.total) || 0), 0);
 
   return (
     <div className="space-y-6 lg:overflow-y-auto lg:h-full lg:pr-1">
@@ -208,9 +209,9 @@ export default function DashboardPage() {
               <h2 className="text-sm font-bold text-slate-900">Ventas de los Últimos 7 Días</h2>
               <p className="text-xs text-slate-400">Ingresos consolidados por jornada</p>
             </div>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Activo</span>
+              <span>Semana: {formatCurrency(weeklyTotal)}</span>
             </span>
           </div>
 

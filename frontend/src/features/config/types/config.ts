@@ -1,3 +1,15 @@
+export interface CompanyInfo {
+  ruc: string;
+  razonSocial: string;
+  nombreComercial: string;
+  address: string;
+  phone?: string;
+  district: string;
+  province: string;
+  department: string;
+  ubigeo: string;
+}
+
 export interface SubChannel {
   id: number;
   name: string;

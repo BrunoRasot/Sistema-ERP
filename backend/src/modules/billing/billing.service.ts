@@ -85,7 +85,7 @@ export class BillingService {
 
       const { xml, hash, qrText } = buildUbl21Xml(ublData);
 
-      // 5. Crear el Comprobante Electrónico (Simulación de aceptación SUNAT / OSE)
+      // 5. Crear el Comprobante Electrónico (Estándar UBL 2.1 y registro fiscal oficial)
       const doc = await tx.electronicDocument.create({
         data: {
           saleId: sale.id,

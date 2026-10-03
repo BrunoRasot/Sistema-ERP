@@ -10,6 +10,7 @@ import { CreateBottleConditionDto } from './dto/create-bottle-condition.dto';
 import { UpdateBottleConditionDto } from './dto/update-bottle-condition.dto';
 import { CreateBottleStockDto } from './dto/create-bottle-stock.dto';
 import { UpdateBottleStockDto } from './dto/update-bottle-stock.dto';
+import { VIVELITE_COMPANY, CompanyData } from '../billing/utils/ubl-builder';
 
 @Injectable()
 export class ConfigService implements OnModuleInit {
@@ -434,5 +435,22 @@ export class ConfigService implements OnModuleInit {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  getCompany(): CompanyData {
+    return VIVELITE_COMPANY;
+  }
+
+  updateCompany(dto: Partial<CompanyData>): CompanyData {
+    if (dto.ruc) VIVELITE_COMPANY.ruc = dto.ruc;
+    if (dto.razonSocial) VIVELITE_COMPANY.razonSocial = dto.razonSocial;
+    if (dto.nombreComercial) VIVELITE_COMPANY.nombreComercial = dto.nombreComercial;
+    if (dto.address) VIVELITE_COMPANY.address = dto.address;
+    if (dto.phone !== undefined) VIVELITE_COMPANY.phone = dto.phone;
+    if (dto.district) VIVELITE_COMPANY.district = dto.district;
+    if (dto.province) VIVELITE_COMPANY.province = dto.province;
+    if (dto.department) VIVELITE_COMPANY.department = dto.department;
+    if (dto.ubigeo) VIVELITE_COMPANY.ubigeo = dto.ubigeo;
+    return VIVELITE_COMPANY;
   }
 }

@@ -6,6 +6,7 @@ export interface CompanyData {
   razonSocial: string;
   nombreComercial: string;
   address: string;
+  phone?: string;
   district: string;
   province: string;
   department: string;
@@ -13,14 +14,15 @@ export interface CompanyData {
 }
 
 export const VIVELITE_COMPANY: CompanyData = {
-  ruc: '20612345678',
+  ruc: '20608945612',
   razonSocial: 'VIVELITE AGUA PURIFICADA S.A.C.',
   nombreComercial: 'VIVELITE',
-  address: 'Av. Industrial 450, Urb. Vulcano',
-  district: 'Ate',
-  province: 'Lima',
-  department: 'Lima',
-  ubigeo: '150103',
+  address: 'Av. Principal s/n, Salas - Guadalupe',
+  phone: '+51 956 123 456',
+  district: 'Salas',
+  province: 'Ica',
+  department: 'Ica',
+  ubigeo: '110111',
 };
 
 export interface InvoiceData {

@@ -48,8 +48,8 @@ export function PosTerminal({
   onSaleSuccess,
 }: PosTerminalProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
-  const [zone, setZone] = useState<string>('Central');
-  const [district, setDistrict] = useState<string>('Lima');
+  const [zone, setZone] = useState<string>('Zona 1 - Ica Centro');
+  const [district, setDistrict] = useState<string>('Ica Cercado');
   const [subchannel, setSubchannel] = useState<string>('MOSTRADOR');
   const [showLogistics, setShowLogistics] = useState(false);
   const [bottleCondition20L, setBottleCondition20L] = useState<string>('RECARGA');
@@ -486,7 +486,7 @@ export function PosTerminal({
                       type="text"
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
-                      placeholder="Ej. Lima"
+                      placeholder="Ej. Ica"
                       className="w-full px-2 py-1 text-xs rounded-lg border border-slate-300 bg-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
                     />
                   </div>

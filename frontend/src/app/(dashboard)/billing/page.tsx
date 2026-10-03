@@ -69,6 +69,7 @@ export default function BillingPage() {
   };
 
   const totalIssued = documents.length;
+  const aceptadosSunatCount = documents.filter((d) => d.sunatStatus === 'ACEPTADO').length;
   const boletasCount = documents.filter((d) => d.invoiceType === 'BOLETA').length;
   const facturasCount = documents.filter((d) => d.invoiceType === 'FACTURA').length;
   const totalBilledAmount = documents.reduce(
@@ -128,7 +129,7 @@ export default function BillingPage() {
         <div className="card p-3 sm:p-3.5 flex items-center justify-between">
           <div>
             <span className="text-[11px] font-semibold text-slate-500 block">Aceptados SUNAT</span>
-            <p className="text-lg sm:text-xl font-black text-emerald-600 mt-0.5">{totalIssued}</p>
+            <p className="text-lg sm:text-xl font-black text-emerald-600 mt-0.5">{aceptadosSunatCount}</p>
           </div>
           <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
             <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
