@@ -38,4 +38,7 @@ COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 10000
 
-CMD ["node", "dist/main.js"]
+# Render does not support pre-deploy commands on the Free plan. Apply committed
+# Prisma migrations at process start so a fresh production database has the
+# schema before Nest runs its default-data initialization.
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]
