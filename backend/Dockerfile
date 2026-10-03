@@ -16,6 +16,9 @@ RUN pnpm install --frozen-lockfile
 COPY tsconfig*.json nest-cli.json ./
 COPY src ./src/
 
+# Variable temporal para permitir prisma generate durante el build de Docker
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
+
 RUN pnpm exec prisma generate
 RUN pnpm build
 
@@ -25,7 +28,7 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=4000
+ENV PORT=10000
 
 RUN npm install -g pnpm@9
 
@@ -39,6 +42,6 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-EXPOSE 4000
+EXPOSE 10000
 
 CMD ["node", "dist/main.js"]
