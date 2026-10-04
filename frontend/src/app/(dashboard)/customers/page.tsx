@@ -22,23 +22,26 @@ import { CreateCustomerModal } from '@/features/customers/components/create-cust
 import { BottleMovementModal } from '@/features/customers/components/bottle-movement-modal';
 import { CustomerCard } from '@/features/customers/components/customer-card';
 import { formatCurrency } from '@/lib/utils';
-import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
+import {
+  Button,
+  SearchInput,
+  LoadingState,
+  EmptyState,
+  PageHeader,
+  StatCard,
+  Badge,
+  useToast,
+} from '@/components/ui';
 
-const CUSTOMER_TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  HOGAR: { label: 'Hogar', color: 'bg-blue-50 text-blue-700' },
-  EMPRESA: { label: 'Empresa', color: 'bg-indigo-50 text-indigo-700' },
-  DISTRIBUIDOR: { label: 'Distribuidor', color: 'bg-purple-50 text-purple-700' },
-};
-
-const LOYALTY_LABELS: Record<string, { label: string; color: string }> = {
-  BRONCE: { label: 'Bronce', color: 'text-amber-700' },
-  PLATA: { label: 'Plata', color: 'text-slate-500' },
-  ORO: { label: 'Oro', color: 'text-yellow-600' },
-  DIAMANTE: { label: 'Diamante', color: 'text-cyan-600' },
+const CUSTOMER_TYPE_LABELS: Record<string, { label: string; variant: 'primary' | 'purple' | 'info' | 'default' }> = {
+  HOGAR: { label: 'Hogar', variant: 'primary' },
+  EMPRESA: { label: 'Empresa', variant: 'purple' },
+  DISTRIBUIDOR: { label: 'Distribuidor', variant: 'info' },
 };
 
 export default function CustomersPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<
     'ALL' | 'TOP_BUYER' | 'FREQUENT' | 'OCCASIONAL' | 'NO_PURCHASES' | 'BOTTLES' | 'HOGAR' | 'EMPRESA'
@@ -49,7 +52,7 @@ export default function CustomersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedCustomerForBottles, setSelectedCustomerForBottles] = useState<Customer | null>(null);
 
-  // Resumen estadístico de categorías de clientes por comportamiento de compra
+  // Resumen estadístico de categorías de clientes
   const { data: summary } = useQuery({
     queryKey: ['customer-categories-summary'],
     queryFn: () => customerService.getCategoriesSummary(),
@@ -86,29 +89,22 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
-      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Clientes y Envases
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Control de cuentas comerciales, categorías por compra y custodia de bidones retornables
-          </p>
-        </div>
+      <PageHeader
+        title="Clientes y Envases"
+        description="Control de cuentas comerciales, categorías por compra y custodia de bidones retornables"
+        actions={
+          <Button
+            variant="primary"
+            icon={<UserPlus className="w-4 h-4" />}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Nuevo Cliente
+          </Button>
+        }
+      />
 
-        <Button
-          variant="primary"
-          icon={<UserPlus className="w-4 h-4" />}
-          onClick={() => setIsCreateModalOpen(true)}
-          className="self-start sm:self-auto"
-        >
-          Nuevo Cliente
-        </Button>
-      </div>
-
-      {/* APARTADO DE CATEGORÍAS DE CLIENTES Y COMPORTAMIENTO DE COMPRA */}
-      {/* APARTADO DE CATEGORÍAS DE CLIENTES Y COMPORTAMIENTO DE COMPRA (Tonalidad Blanca) */}
-      <div className="shrink-0 card p-3 sm:p-4 space-y-3 bg-white border border-slate-200/80 shadow-xs rounded-2xl">
+      {/* Segmentación Comercial y Volumen de Compra */}
+      <div className="shrink-0 card p-3 sm:p-4 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-2.5">
           <div className="flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
@@ -116,46 +112,44 @@ export default function CustomersPage() {
             </div>
             <div>
               <h2 className="text-xs sm:text-sm font-bold text-slate-900 tracking-wide flex items-center gap-1.5">
-                Categorías de Clientes por Volumen de Compra
+                Segmentación Comercial por Consumo
                 <Sparkles className="w-3.5 h-3.5 text-amber-500 inline" />
               </h2>
               <p className="text-[10px] sm:text-[11px] text-slate-500">
-                Segmentación comercial en tiempo real: desde el cliente que más compra hasta clientes por activar
+                Segmentación en tiempo real según volumen y recurrencia de pedidos en Ica
               </p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 text-xs bg-slate-50 border border-slate-200/80 px-2.5 py-1 rounded-xl">
             <span className="text-slate-500">Facturación acumulada:</span>
-            <span className="font-black text-slate-900">{formatCurrency(summary?.totalRevenue || 0)}</span>
+            <span className="font-bold text-slate-900">{formatCurrency(summary?.totalRevenue || 0)}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {/* Card 1: El que más compra (Top 1) */}
+          {/* Card 1: Top 1 */}
           <div
             onClick={() => {
               setFilterType('TOP_BUYER');
               setSortBy('MOST_PURCHASES');
             }}
-            title="Clic para filtrar por clientes que más compran"
-            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
+            title="Clic para filtrar por clientes con mayor volumen de compra"
+            className="cursor-pointer bg-white hover:bg-slate-50 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1 font-bold text-slate-900">
                 <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                El que más compra
+                Mayor Compra (Top)
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
-                {summary?.topBuyersCount || 0} TOP
-              </span>
+              <Badge variant="warning">{summary?.topBuyersCount || 0} TOP</Badge>
             </div>
             {summary?.topBuyer ? (
               <div>
-                <p className="font-extrabold text-sm text-slate-900 truncate group-hover:text-blue-600 transition">
+                <p className="font-bold text-sm text-slate-900 truncate group-hover:text-blue-600 transition">
                   {summary.topBuyer.name}
                 </p>
                 <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-                  <span className="font-black text-slate-900 text-xs">
+                  <span className="font-bold text-slate-900 text-xs">
                     {formatCurrency(summary.topBuyer.totalPurchases)}
                   </span>
                   <span>
@@ -164,34 +158,32 @@ export default function CustomersPage() {
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-slate-400 italic">Sin compras registradas aún</p>
+              <p className="text-xs text-slate-400 italic">Sin compras registradas</p>
             )}
             <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
-              Filtrar mejores compradores →
+              Filtrar mejores clientes →
             </span>
           </div>
 
-          {/* Card 2: El que menos compra */}
+          {/* Card 2: Menor Compra */}
           <div
             onClick={() => {
               setFilterType('OCCASIONAL');
               setSortBy('LEAST_PURCHASES');
             }}
             title="Clic para filtrar clientes con menor compra acumulada"
-            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
+            className="cursor-pointer bg-white hover:bg-slate-50 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1 font-bold text-slate-900">
                 <TrendingDown className="w-3.5 h-3.5 text-slate-500" />
-                El que menos compra
+                Menor Compra
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
-                {summary?.occasionalCount || 0} Menores
-              </span>
+              <Badge variant="default">{summary?.occasionalCount || 0} Menores</Badge>
             </div>
             {summary?.leastBuyer ? (
               <div>
-                <p className="font-extrabold text-sm text-slate-900 truncate group-hover:text-blue-600 transition">
+                <p className="font-bold text-sm text-slate-900 truncate group-hover:text-blue-600 transition">
                   {summary.leastBuyer.name}
                 </p>
                 <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
@@ -218,45 +210,41 @@ export default function CustomersPage() {
               setSortBy('MOST_PURCHASES');
             }}
             title="Clic para ver clientes habituales"
-            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
+            className="cursor-pointer bg-white hover:bg-slate-50 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1 font-bold text-slate-900">
                 <ShoppingBag className="w-3.5 h-3.5 text-slate-600" />
                 Clientes Frecuentes
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
-                {summary?.frequentCount || 0} Clientes
-              </span>
+              <Badge variant="success">{summary?.frequentCount || 0} Clientes</Badge>
             </div>
             <p className="text-xs text-slate-500 line-clamp-2">
-              Clientes con pedidos regulares y consumo recurrente en Ica.
+              Clientes con consumo regular y recurrente en Ica.
             </p>
             <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
               Ver clientes regulares →
             </span>
           </div>
 
-          {/* Card 4: Sin Compras Aún */}
+          {/* Card 4: Sin Compras */}
           <div
             onClick={() => {
               setFilterType('NO_PURCHASES');
               setSortBy('RECENT');
             }}
             title="Clic para ver clientes registrados sin compras"
-            className="cursor-pointer bg-white hover:bg-slate-50/80 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
+            className="cursor-pointer bg-white hover:bg-slate-50 transition rounded-xl p-3 border border-slate-200 shadow-2xs space-y-1.5 group"
           >
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1 font-bold text-slate-900">
                 <Users className="w-3.5 h-3.5 text-slate-600" />
                 Sin Compras Aún
               </span>
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-extrabold border border-slate-200/60">
-                {summary?.noPurchasesCount || 0} Nuevos
-              </span>
+              <Badge variant="default">{summary?.noPurchasesCount || 0} Nuevos</Badge>
             </div>
             <p className="text-xs text-slate-500 line-clamp-2">
-              Cuentas registradas pendientes de su primera orden o entrega.
+              Cuentas registradas pendientes de su primera orden.
             </p>
             <span className="text-[10px] text-slate-400 group-hover:text-blue-600 block pt-0.5 font-medium transition">
               Ver para activar ventas →
@@ -265,38 +253,34 @@ export default function CustomersPage() {
         </div>
       </div>
 
+      {/* Grid de Métricas Generales */}
       <div className="shrink-0 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500">Clientes Totales</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{total}</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-blue-50 text-blue-600">
-            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="Clientes Totales"
+          value={total}
+          subtitle="Directorio activo en Ica"
+          icon={<Users className="w-5 h-5" />}
+          iconColor="bg-blue-50 text-blue-600"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500">Bidones en Custodia</span>
-            <p className="text-lg sm:text-xl font-bold text-amber-600 mt-0.5">{totalBottlesInHolding} unid.</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-amber-50 text-amber-600">
-            <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="Bidones en Custodia"
+          value={`${totalBottlesInHolding} unid.`}
+          subtitle="En posesión de clientes"
+          icon={<RotateCcw className="w-5 h-5" />}
+          iconColor="bg-amber-50 text-amber-600"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500">Deuda por Cobrar</span>
-            <p className="text-lg sm:text-xl font-bold text-rose-600 mt-0.5">{formatCurrency(totalDebt)}</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-rose-50 text-rose-600">
-            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="Deuda por Cobrar"
+          value={formatCurrency(totalDebt)}
+          subtitle="Saldo pendiente en cartera"
+          icon={<AlertTriangle className="w-5 h-5" />}
+          iconColor={totalDebt > 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-700'}
+        />
       </div>
 
+      {/* Buscador y Filtros */}
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
         <SearchInput
           value={search}
@@ -328,7 +312,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <Trophy className="w-3.5 h-3.5" />
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
               <span>Mayor Compra (Top)</span>
             </button>
 
@@ -343,7 +327,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <ShoppingBag className="w-3.5 h-3.5" />
+              <ShoppingBag className="w-3.5 h-3.5 text-slate-600" />
               <span>Frecuentes</span>
             </button>
 
@@ -358,7 +342,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <TrendingDown className="w-3.5 h-3.5" />
+              <TrendingDown className="w-3.5 h-3.5 text-slate-500" />
               <span>Menor Compra</span>
             </button>
 
@@ -373,7 +357,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <Users className="w-3.5 h-3.5" />
+              <Users className="w-3.5 h-3.5 text-slate-600" />
               <span>Sin Compras</span>
             </button>
 
@@ -385,7 +369,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
               <span>Con Bidones Prestados</span>
             </button>
 
@@ -397,7 +381,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <Home className="w-3.5 h-3.5" />
+              <Home className="w-3.5 h-3.5 text-slate-600" />
               <span>Hogares</span>
             </button>
 
@@ -409,7 +393,7 @@ export default function CustomersPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
               }`}
             >
-              <Building2 className="w-3.5 h-3.5" />
+              <Building2 className="w-3.5 h-3.5 text-slate-600" />
               <span>Empresas</span>
             </button>
           </div>
@@ -417,12 +401,12 @@ export default function CustomersPage() {
           <div className="shrink-0 flex items-center gap-1.5 text-xs">
             <span className="text-slate-500 font-semibold whitespace-nowrap flex items-center gap-1">
               <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
-              Ordenar por:
+              Ordenar:
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="MOST_PURCHASES">⬇️ Mayor Compra (S/)</option>
               <option value="LEAST_PURCHASES">⬆️ Menor Compra (S/)</option>
@@ -466,6 +450,7 @@ export default function CustomersPage() {
         />
       ) : (
         <>
+          {/* Vista móvil */}
           <div className="lg:hidden space-y-3">
             {customers.map((customer) => (
               <CustomerCard
@@ -479,6 +464,7 @@ export default function CustomersPage() {
             </p>
           </div>
 
+          {/* Tabla desktop */}
           <div className="hidden lg:flex flex-1 min-h-0 flex-col card overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
               <table className="w-full text-xs text-left border-collapse">
@@ -499,7 +485,7 @@ export default function CustomersPage() {
                   {customers.map((c) => {
                     const typeInfo = CUSTOMER_TYPE_LABELS[c.customerType] || {
                       label: c.customerType,
-                      color: 'bg-slate-100 text-slate-600',
+                      variant: 'default' as const,
                     };
                     const cleanPhone = (c.phone || '').replace(/\D/g, '');
 
@@ -543,13 +529,13 @@ export default function CustomersPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${typeInfo.color}`}>
+                          <Badge variant={typeInfo.variant}>
                             {typeInfo.label}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <div className="flex flex-col items-end gap-0.5">
-                            <span className="font-black text-slate-900 text-xs">
+                            <span className="font-bold text-slate-900 text-xs">
                               {formatCurrency(c.totalPurchases || 0)}
                             </span>
                             <span className="text-[10px] text-slate-400">
@@ -557,42 +543,36 @@ export default function CustomersPage() {
                             </span>
                             <div>
                               {c.purchaseCategory === 'TOP_BUYER' && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+                                <Badge variant="warning" size="sm">
                                   🌟 Mayor Compra
-                                </span>
+                                </Badge>
                               )}
                               {c.purchaseCategory === 'FREQUENT' && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                <Badge variant="success" size="sm">
                                   🛒 Frecuente
-                                </span>
+                                </Badge>
                               )}
                               {c.purchaseCategory === 'OCCASIONAL' && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">
+                                <Badge variant="default" size="sm">
                                   📉 Menor Compra
-                                </span>
+                                </Badge>
                               )}
                               {(!c.purchaseCategory || c.purchaseCategory === 'NO_PURCHASES') && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-50 text-slate-400 border border-slate-200">
+                                <Badge variant="default" size="sm">
                                   🆕 Sin Compras
-                                </span>
+                                </Badge>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
-                              c.bottlesHolding > 0
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}
-                          >
+                          <Badge variant={c.bottlesHolding > 0 ? 'warning' : 'default'}>
                             {c.bottlesHolding} {c.bottlesHolding === 1 ? 'bidón' : 'bidones'}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <span
-                            className={`font-black text-xs ${
+                            className={`font-bold text-xs ${
                               Number(c.currentDebt || 0) > 0 ? 'text-rose-600' : 'text-slate-400'
                             }`}
                           >
@@ -600,14 +580,15 @@ export default function CustomersPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <button
+                          <Button
+                            variant="outline"
+                            size="xs"
+                            icon={<RotateCcw className="w-3.5 h-3.5 text-slate-500" />}
                             onClick={() => setSelectedCustomerForBottles(c)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-xs transition"
                             title="Registrar devolución o entrega de bidones"
                           >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Envases</span>
-                          </button>
+                            Envases
+                          </Button>
                         </td>
                       </tr>
                     );
@@ -627,6 +608,7 @@ export default function CustomersPage() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={() => {
+          toast.success('Cliente registrado', 'El nuevo cliente fue añadido a la cartera comercial.');
           queryClient.invalidateQueries({ queryKey: ['customers'] });
           queryClient.invalidateQueries({ queryKey: ['customer-categories-summary'] });
         }}
@@ -638,6 +620,7 @@ export default function CustomersPage() {
           isOpen={!!selectedCustomerForBottles}
           onClose={() => setSelectedCustomerForBottles(null)}
           onSuccess={() => {
+            toast.success('Movimiento de envases registrado', 'El saldo de bidones en custodia fue actualizado.');
             queryClient.invalidateQueries({ queryKey: ['customers'] });
             queryClient.invalidateQueries({ queryKey: ['customer-categories-summary'] });
           }}

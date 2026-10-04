@@ -12,17 +12,11 @@ import {
   Trash2,
   Edit2,
   Check,
-  AlertCircle,
-  Sparkles,
-  Save,
-  CheckCircle2,
   Store,
   Users,
   UserPlus,
   Shield,
   ShieldCheck,
-  UserCheck,
-  Lock,
   Mail,
   Phone,
   Power,
@@ -32,16 +26,40 @@ import { Zone, District, SubChannel, BottleCondition, CompanyInfo } from '@/feat
 import { userService } from '@/features/users/services/user-service';
 import { SystemUser } from '@/features/users/types/user';
 import { UserModal } from '@/features/users/components/user-modal';
-import { Button, SearchInput } from '@/components/ui';
+import {
+  Button,
+  SearchInput,
+  PageHeader,
+  Badge,
+  ConfirmDialog,
+  useToast,
+} from '@/components/ui';
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'USERS' | 'ZONES' | 'DISTRICTS' | 'SUBCHANNELS' | 'CONDITIONS' | 'COMPANY'>('USERS');
 
   // User management states
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<SystemUser | null>(null);
   const [userSearch, setUserSearch] = useState('');
+
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    description: string;
+    onConfirm: () => Promise<void> | void;
+    confirmText?: string;
+    variant?: 'danger' | 'warning' | 'primary';
+  }>({
+    isOpen: false,
+    title: '',
+    description: '',
+    onConfirm: () => {},
+  });
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
   // Form states
   const [newZoneName, setNewZoneName] = useState('');
@@ -57,9 +75,6 @@ export default function SettingsPage() {
   // Editing state
   const [editingZoneId, setEditingZoneId] = useState<number | null>(null);
   const [editingZoneName, setEditingZoneName] = useState('');
-
-  // Status message
-  const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Queries
   const { data: usersData, isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
@@ -107,9 +122,9 @@ export default function SettingsPage() {
     try {
       await configService.updateCompany(companyForm);
       refetchCompany();
-      showNotification('Información de la empresa guardada exitosamente');
+      toast.success('Empresa actualizada', 'La información de la empresa fue guardada exitosamente.');
     } catch (err: any) {
-      showNotification('Error al guardar datos de la empresa: ' + (err?.message || 'Error de conexión'), 'error');
+      toast.error('Error al guardar datos', err?.message || 'Error de conexión');
     } finally {
       setIsSavingCompany(false);
     }
@@ -145,31 +160,38 @@ export default function SettingsPage() {
     ? (conditionsData as any).data
     : [];
 
-  const showNotification = (text: string, type: 'success' | 'error' = 'success') => {
-    setStatusMessage({ text, type });
-    setTimeout(() => setStatusMessage(null), 3500);
-  };
-
   // User Actions
   const handleToggleUserStatus = async (user: SystemUser) => {
     try {
       await userService.toggleUserStatus(user.id);
       refetchUsers();
-      showNotification(`Estado de ${user.firstName} actualizado`);
+      toast.success('Estado actualizado', `El estado de ${user.firstName} fue actualizado.`);
     } catch (err: any) {
-      showNotification('Error al cambiar estado: ' + err.message, 'error');
+      toast.error('Error al cambiar estado', err?.message || 'No se pudo modificar el estado');
     }
   };
 
-  const handleDeleteUser = async (user: SystemUser) => {
-    if (!confirm(`¿Estás seguro de dar de baja al usuario ${user.firstName} ${user.lastName}?`)) return;
-    try {
-      await userService.deleteUser(user.id);
-      refetchUsers();
-      showNotification('Usuario eliminado del sistema');
-    } catch (err: any) {
-      showNotification('Error al eliminar usuario: ' + err.message, 'error');
-    }
+  const handleDeleteUserClick = (user: SystemUser) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Dar de baja a este usuario?',
+      description: `¿Estás seguro de que deseas desactivar la cuenta de ${user.firstName} ${user.lastName} (${user.email})? Ya no podrá iniciar sesión en el ERP.`,
+      confirmText: 'Sí, dar de baja',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          setIsActionLoading(true);
+          await userService.deleteUser(user.id);
+          refetchUsers();
+          toast.success('Usuario eliminado', `La cuenta de ${user.firstName} fue dada de baja.`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          toast.error('Error al eliminar usuario', err?.message || 'No se pudo eliminar');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   // Zones
@@ -180,9 +202,9 @@ export default function SettingsPage() {
       await configService.createZone(newZoneName.trim());
       setNewZoneName('');
       refetchZones();
-      showNotification('Zona creada exitosamente');
+      toast.success('Zona creada', 'La nueva zona fue registrada.');
     } catch (err: any) {
-      showNotification('Error al crear zona: ' + err.message, 'error');
+      toast.error('Error al crear zona', err?.message || 'No se pudo crear');
     }
   };
 
@@ -192,22 +214,34 @@ export default function SettingsPage() {
       await configService.updateZone(id, editingZoneName.trim());
       setEditingZoneId(null);
       refetchZones();
-      showNotification('Zona actualizada');
+      toast.success('Zona actualizada', 'El nombre de la zona se guardó.');
     } catch (err: any) {
-      showNotification('Error al actualizar: ' + err.message, 'error');
+      toast.error('Error al actualizar zona', err?.message || 'No se pudo actualizar');
     }
   };
 
-  const handleDeleteZone = async (id: number) => {
-    if (!confirm('¿Seguro que deseas eliminar esta zona y sus dependencias?')) return;
-    try {
-      await configService.deleteZone(id);
-      refetchZones();
-      refetchDistricts();
-      showNotification('Zona eliminada');
-    } catch (err: any) {
-      showNotification('No se pudo eliminar la zona: ' + err.message, 'error');
-    }
+  const handleDeleteZoneClick = (id: number, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar zona de reparto?',
+      description: `¿Estás seguro de eliminar la zona "${name}"? Esta acción afectará los distritos y rutas asociados.`,
+      confirmText: 'Sí, eliminar zona',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          setIsActionLoading(true);
+          await configService.deleteZone(id);
+          refetchZones();
+          refetchDistricts();
+          toast.success('Zona eliminada', `La zona "${name}" fue eliminada.`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          toast.error('No se pudo eliminar', err?.message || 'Error al eliminar');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   // Districts
@@ -219,22 +253,34 @@ export default function SettingsPage() {
       setNewDistrictName('');
       refetchDistricts();
       refetchZones();
-      showNotification('Distrito registrado exitosamente');
+      toast.success('Distrito registrado', 'El distrito fue asignado a la zona seleccionada.');
     } catch (err: any) {
-      showNotification('Error al crear distrito: ' + err.message, 'error');
+      toast.error('Error al crear distrito', err?.message || 'No se pudo registrar');
     }
   };
 
-  const handleDeleteDistrict = async (id: number) => {
-    if (!confirm('¿Deseas eliminar este distrito?')) return;
-    try {
-      await configService.deleteDistrict(id);
-      refetchDistricts();
-      refetchZones();
-      showNotification('Distrito eliminado');
-    } catch (err: any) {
-      showNotification('Error: ' + err.message, 'error');
-    }
+  const handleDeleteDistrictClick = (id: number, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar distrito?',
+      description: `¿Estás seguro de eliminar el distrito "${name}"?`,
+      confirmText: 'Sí, eliminar',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          setIsActionLoading(true);
+          await configService.deleteDistrict(id);
+          refetchDistricts();
+          refetchZones();
+          toast.success('Distrito eliminado', `El distrito "${name}" fue eliminado.`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          toast.error('Error al eliminar', err?.message || 'No se pudo eliminar');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   // SubChannels
@@ -245,21 +291,33 @@ export default function SettingsPage() {
       await configService.createSubChannel(newSubchannelName.trim(), Number(selectedDistrictIdForSubchannel));
       setNewSubchannelName('');
       refetchSubchannels();
-      showNotification('Subcanal agregado exitosamente');
+      toast.success('Subcanal agregado', 'El subcanal comercial fue creado.');
     } catch (err: any) {
-      showNotification('Error: ' + err.message, 'error');
+      toast.error('Error al crear subcanal', err?.message || 'No se pudo crear');
     }
   };
 
-  const handleDeleteSubchannel = async (id: number) => {
-    if (!confirm('¿Deseas eliminar este subcanal?')) return;
-    try {
-      await configService.deleteSubChannel(id);
-      refetchSubchannels();
-      showNotification('Subcanal eliminado');
-    } catch (err: any) {
-      showNotification('Error: ' + err.message, 'error');
-    }
+  const handleDeleteSubchannelClick = (id: number, name: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar subcanal comercial?',
+      description: `¿Estás seguro de eliminar el subcanal "${name}"?`,
+      confirmText: 'Sí, eliminar',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          setIsActionLoading(true);
+          await configService.deleteSubChannel(id);
+          refetchSubchannels();
+          toast.success('Subcanal eliminado', `El subcanal "${name}" fue eliminado.`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          toast.error('Error al eliminar', err?.message || 'No se pudo eliminar');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   // Bottle Conditions
@@ -271,38 +329,42 @@ export default function SettingsPage() {
       setNewConditionCode('');
       setNewConditionDesc('');
       refetchConditions();
-      showNotification('Condición de bidón 20L registrada');
+      toast.success('Condición de envase registrada', 'El parámetro de envase 20L fue guardado.');
     } catch (err: any) {
-      showNotification('Error: ' + err.message, 'error');
+      toast.error('Error al crear condición', err?.message || 'No se pudo registrar');
     }
   };
 
-  const handleDeleteCondition = async (id: number) => {
-    if (!confirm('¿Eliminar esta condición de bidón?')) return;
-    try {
-      await configService.deleteBottleCondition(id);
-      refetchConditions();
-      showNotification('Condición eliminada');
-    } catch (err: any) {
-      showNotification('Error: ' + err.message, 'error');
-    }
+  const handleDeleteConditionClick = (id: number, code: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: '¿Eliminar condición de envase?',
+      description: `¿Estás seguro de eliminar la condición "${code}" para envases 20L?`,
+      confirmText: 'Sí, eliminar',
+      variant: 'danger',
+      onConfirm: async () => {
+        try {
+          setIsActionLoading(true);
+          await configService.deleteBottleCondition(id);
+          refetchConditions();
+          toast.success('Condición eliminada', `La regla "${code}" fue eliminada.`);
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+        } catch (err: any) {
+          toast.error('Error al eliminar', err?.message || 'No se pudo eliminar');
+        } finally {
+          setIsActionLoading(false);
+        }
+      },
+    });
   };
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:overflow-y-auto lg:h-full lg:pr-1">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Settings className="w-7 h-7 text-brand-600" />
-            Configuración del Sistema
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Administración de usuarios y roles, zonas de reparto, subcanales comerciales y parámetros
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          {activeTab === 'USERS' && (
+      <PageHeader
+        title="Configuración del Sistema"
+        description="Administración de usuarios y roles, zonas de reparto, subcanales comerciales y parámetros"
+        actions={
+          activeTab === 'USERS' && (
             <Button
               variant="primary"
               icon={<UserPlus className="w-4 h-4" />}
@@ -313,24 +375,12 @@ export default function SettingsPage() {
             >
               Nuevo Usuario
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
-      {statusMessage && (
-        <div
-          className={`p-3 rounded-xl border text-xs sm:text-sm font-semibold flex items-center gap-2 ${
-            statusMessage.type === 'success'
-              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-              : 'bg-rose-50 border-rose-200 text-rose-800'
-          }`}
-        >
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{statusMessage.text}</span>
-        </div>
-      )}
-
-      <div className="flex border-b border-slate-200 gap-2 sm:gap-6 overflow-x-auto">
+      {/* Tabs de Configuración */}
+      <div className="flex border-b border-slate-200 gap-2 sm:gap-6 overflow-x-auto pb-px">
         <button
           onClick={() => setActiveTab('USERS')}
           className={`pb-3 text-xs sm:text-sm font-bold flex items-center gap-1.5 border-b-2 whitespace-nowrap transition ${
@@ -414,7 +464,7 @@ export default function SettingsPage() {
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
@@ -437,12 +487,11 @@ export default function SettingsPage() {
                   ) : users.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="text-center py-8 text-slate-400">
-                        No hay usuarios registrados. Agrega uno con el botón superior.
+                        No hay usuarios registrados.
                       </td>
                     </tr>
                   ) : (
                     users.map((u) => {
-                      const isAdmin = u.role === 'ADMIN' || u.role === 'SUPER_ADMIN';
                       const isActive = u.status === 'ACTIVE';
 
                       return (
@@ -482,25 +531,19 @@ export default function SettingsPage() {
                             )}
                           </td>
                           <td className="px-4 py-3">
-                            <span
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200"
-                            >
-                              <Shield className="w-3 h-3" />
-                              {u.role === 'ADMIN' || u.role === 'SUPER_ADMIN'
+                            <Badge variant={u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' ? 'primary' : 'default'}>
+                              <Shield className="w-3 h-3 inline mr-1" />
+                              {u.role === 'SUPER_ADMIN'
+                                ? 'SUPER ADMIN'
+                                : u.role === 'ADMIN'
                                 ? 'ADMINISTRADOR'
-                                : 'USUARIO (Vendedor)'}
-                            </span>
+                                : u.role}
+                            </Badge>
                           </td>
                           <td className="px-4 py-3 text-center">
-                            <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                isActive
-                                  ? 'bg-emerald-100 text-emerald-800'
-                                  : 'bg-rose-100 text-rose-800'
-                              }`}
-                            >
+                            <Badge variant={isActive ? 'success' : 'danger'}>
                               {isActive ? 'Activo' : 'Inactivo'}
-                            </span>
+                            </Badge>
                           </td>
                           <td className="px-4 py-3 text-right">
                             <div className="flex items-center justify-end gap-1.5">
@@ -526,7 +569,7 @@ export default function SettingsPage() {
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => handleDeleteUser(u)}
+                                onClick={() => handleDeleteUserClick(u)}
                                 className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition"
                                 title="Eliminar usuario"
                               >
@@ -547,7 +590,7 @@ export default function SettingsPage() {
 
       {activeTab === 'ZONES' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="md:col-span-1 card p-5 space-y-4">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <Plus className="w-4 h-4 text-slate-700" />
               Nueva Zona de Reparto
@@ -559,21 +602,22 @@ export default function SettingsPage() {
                   type="text"
                   value={newZoneName}
                   onChange={(e) => setNewZoneName(e.target.value)}
-                  placeholder="Ej: Zona 1 - Lima Norte"
+                  placeholder="Ej: Zona 1 - Ica Centro"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                   required
                 />
               </div>
-              <button
+              <Button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-xs transition"
+                variant="primary"
+                className="w-full"
               >
                 Agregar Zona
-              </button>
+              </Button>
             </form>
           </div>
 
-          <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="md:col-span-2 card overflow-hidden">
             <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 text-xs sm:text-sm">
               Zonas Registradas ({zones.length})
             </div>
@@ -592,11 +636,11 @@ export default function SettingsPage() {
                             type="text"
                             value={editingZoneName}
                             onChange={(e) => setEditingZoneName(e.target.value)}
-                            className="px-2 py-1 bg-white border border-brand-500 rounded-lg text-xs sm:text-sm font-bold"
+                            className="px-2 py-1 bg-white border border-slate-400 rounded-lg text-xs sm:text-sm font-bold"
                           />
                           <button
                             onClick={() => handleUpdateZone(z.id)}
-                            className="p-1 rounded bg-brand-600 text-white"
+                            className="p-1 rounded bg-slate-900 text-white"
                           >
                             <Check className="w-3.5 h-3.5" />
                           </button>
@@ -604,26 +648,26 @@ export default function SettingsPage() {
                       ) : (
                         <span className="font-bold text-slate-900 block text-xs sm:text-sm">{z.name}</span>
                       )}
-                      <span className="text-[11px] text-slate-500">
-                        {z.districts?.length || 0} distritos asignados
+                      <span className="text-[11px] text-slate-400">
+                        {z.districts ? `${z.districts.length} distrito(s) asociados` : 'Sin distritos'}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => {
                           setEditingZoneId(z.id);
                           setEditingZoneName(z.name);
                         }}
-                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                        title="Editar"
+                        className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100"
+                        title="Editar nombre"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
-                        onClick={() => handleDeleteZone(z.id)}
+                        onClick={() => handleDeleteZoneClick(z.id, z.name)}
                         className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
-                        title="Eliminar"
+                        title="Eliminar zona"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -638,21 +682,21 @@ export default function SettingsPage() {
 
       {activeTab === 'DISTRICTS' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="md:col-span-1 card p-5 space-y-4">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <Plus className="w-4 h-4 text-slate-700" />
               Nuevo Distrito
             </h3>
             <form onSubmit={handleCreateDistrict} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Zona Asignada</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">Zona Perteneciente</label>
                 <select
                   value={selectedZoneIdForDistrict}
-                  onChange={(e) => setSelectedZoneIdForDistrict(Number(e.target.value))}
+                  onChange={(e) => setSelectedZoneIdForDistrict(e.target.value ? Number(e.target.value) : '')}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                   required
                 >
-                  <option value="">-- Seleccionar Zona --</option>
+                  <option value="">Selecciona una zona...</option>
                   {zones.map((z) => (
                     <option key={z.id} value={z.id}>
                       {z.name}
@@ -667,44 +711,45 @@ export default function SettingsPage() {
                   type="text"
                   value={newDistrictName}
                   onChange={(e) => setNewDistrictName(e.target.value)}
-                  placeholder="Ej: Los Olivos"
+                  placeholder="Ej: Ica Cercado, La Tinguiña"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                   required
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-xs transition"
+                variant="primary"
+                className="w-full"
               >
-                Registrar Distrito
-              </button>
+                Agregar Distrito
+              </Button>
             </form>
           </div>
 
-          <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="md:col-span-2 card overflow-hidden">
             <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 text-xs sm:text-sm">
               Distritos Registrados ({districts.length})
             </div>
-            <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+            <div className="divide-y divide-slate-100">
               {isLoadingDistricts ? (
                 <div className="p-8 text-center text-slate-400 text-xs sm:text-sm">Cargando distritos...</div>
               ) : districts.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 text-xs sm:text-sm">No hay distritos registrados.</div>
+                <div className="p-8 text-center text-slate-400 text-xs sm:text-sm">No hay distritos creados aún.</div>
               ) : (
                 districts.map((d) => (
                   <div key={d.id} className="p-4 flex items-center justify-between hover:bg-slate-50/80 transition">
                     <div>
                       <span className="font-bold text-slate-900 block text-xs sm:text-sm">{d.name}</span>
-                      <span className="text-[11px] text-slate-500">
-                        Zona: <strong className="text-slate-900">{d.zone?.name || 'Sin zona'}</strong>
+                      <span className="text-[11px] text-slate-500 font-medium">
+                        Zona: {d.zone?.name || 'Sin zona asignada'}
                       </span>
                     </div>
 
                     <button
-                      onClick={() => handleDeleteDistrict(d.id)}
+                      onClick={() => handleDeleteDistrictClick(d.id, d.name)}
                       className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
-                      title="Eliminar"
+                      title="Eliminar distrito"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -718,21 +763,21 @@ export default function SettingsPage() {
 
       {activeTab === 'SUBCHANNELS' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="md:col-span-1 card p-5 space-y-4">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <Plus className="w-4 h-4 text-slate-700" />
-              Nuevo Subcanal de Venta
+              Nuevo Subcanal Comercial
             </h3>
             <form onSubmit={handleCreateSubchannel} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Distrito Asociado</label>
                 <select
                   value={selectedDistrictIdForSubchannel}
-                  onChange={(e) => setSelectedDistrictIdForSubchannel(Number(e.target.value))}
+                  onChange={(e) => setSelectedDistrictIdForSubchannel(e.target.value ? Number(e.target.value) : '')}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                   required
                 >
-                  <option value="">-- Seleccionar Distrito --</option>
+                  <option value="">Selecciona un distrito...</option>
                   {districts.map((d) => (
                     <option key={d.id} value={d.id}>
                       {d.name} ({d.zone?.name})
@@ -747,26 +792,27 @@ export default function SettingsPage() {
                   type="text"
                   value={newSubchannelName}
                   onChange={(e) => setNewSubchannelName(e.target.value)}
-                  placeholder="Ej: HOGAR, EMPRESA, MOSTRADOR, WHATSAPP"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 uppercase"
+                  placeholder="Ej: Bodegas, Colegios, Clínicas"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10"
                   required
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-xs transition"
+                variant="primary"
+                className="w-full"
               >
-                Guardar Subcanal
-              </button>
+                Agregar Subcanal
+              </Button>
             </form>
           </div>
 
-          <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="md:col-span-2 card overflow-hidden">
             <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 text-xs sm:text-sm">
-              Subcanales Activos ({subchannels.length})
+              Subcanales Comerciales ({subchannels.length})
             </div>
-            <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">
+            <div className="divide-y divide-slate-100">
               {isLoadingSubchannels ? (
                 <div className="p-8 text-center text-slate-400 text-xs sm:text-sm">Cargando subcanales...</div>
               ) : subchannels.length === 0 ? (
@@ -777,14 +823,14 @@ export default function SettingsPage() {
                     <div>
                       <span className="font-bold text-slate-900 block text-xs sm:text-sm">{s.name}</span>
                       <span className="text-[11px] text-slate-500">
-                        Distrito: {s.district?.name} | Zona: {s.district?.zone?.name || '-'}
+                        Distrito: {s.district?.name || 'General'}
                       </span>
                     </div>
 
                     <button
-                      onClick={() => handleDeleteSubchannel(s.id)}
+                      onClick={() => handleDeleteSubchannelClick(s.id, s.name)}
                       className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
-                      title="Eliminar"
+                      title="Eliminar subcanal"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -798,7 +844,7 @@ export default function SettingsPage() {
 
       {activeTab === 'CONDITIONS' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="md:col-span-1 card p-5 space-y-4">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <Plus className="w-4 h-4 text-slate-700" />
               Nueva Condición Envase 20L
@@ -827,16 +873,17 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-xs transition"
+                variant="primary"
+                className="w-full"
               >
                 Guardar Condición
-              </button>
+              </Button>
             </form>
           </div>
 
-          <div className="md:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="md:col-span-2 card overflow-hidden">
             <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-slate-800 text-xs sm:text-sm">
               Condiciones de Envase Habilitadas en POS ({conditions.length})
             </div>
@@ -854,7 +901,7 @@ export default function SettingsPage() {
                     </div>
 
                     <button
-                      onClick={() => handleDeleteCondition(c.id)}
+                      onClick={() => handleDeleteConditionClick(c.id, c.code)}
                       className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50"
                       title="Eliminar"
                     >
@@ -869,7 +916,7 @@ export default function SettingsPage() {
       )}
 
       {activeTab === 'COMPANY' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl space-y-4">
+        <div className="card p-6 max-w-2xl space-y-4">
           <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
             <Store className="w-5 h-5 text-slate-700" />
             Datos de la Distribuidora
@@ -973,11 +1020,24 @@ export default function SettingsPage() {
         }}
         onSuccess={() => {
           refetchUsers();
-          showNotification(
-            selectedUserForEdit ? 'Usuario actualizado con éxito' : 'Usuario creado exitosamente',
+          toast.success(
+            selectedUserForEdit ? 'Usuario actualizado' : 'Usuario registrado',
+            'La cuenta de usuario fue guardada.',
           );
         }}
         userToEdit={selectedUserForEdit}
+      />
+
+      {/* Modal Reutilizable de Confirmación */}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        isLoading={isActionLoading}
+        title={confirmDialog.title}
+        description={confirmDialog.description}
+        confirmText={confirmDialog.confirmText}
+        variant={confirmDialog.variant}
       />
     </div>
   );

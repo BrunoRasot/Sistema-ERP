@@ -9,3 +9,7 @@ export * from './spinner';
 export * from './empty-state';
 export * from './skeleton';
 export * from './toast';
+export * from './stat-card';
+export * from './pagination';
+export * from './confirm-dialog';
+export * from './page-header';

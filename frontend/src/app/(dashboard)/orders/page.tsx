@@ -10,6 +10,7 @@ import {
   Package,
   MapPin,
   UserCheck,
+  X,
 } from 'lucide-react';
 import { orderService } from '@/features/orders/services/order-service';
 import { customerService } from '@/features/customers/services/customer-service';
@@ -20,25 +21,38 @@ import { AssignDriverModal } from '@/features/orders/components/assign-driver-mo
 import { DeliverOrderModal } from '@/features/orders/components/deliver-order-modal';
 import { OrderCard } from '@/features/orders/components/order-card';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
+import {
+  Button,
+  SearchInput,
+  LoadingState,
+  EmptyState,
+  PageHeader,
+  StatCard,
+  Badge,
+  ConfirmDialog,
+  useToast,
+} from '@/components/ui';
 
-const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
-  PENDIENTE:  { label: 'Pendiente',    color: 'bg-amber-100 text-amber-700' },
-  CONFIRMADO: { label: 'Confirmado',   color: 'bg-blue-100 text-blue-700' },
-  PREPARANDO: { label: 'Preparando',   color: 'bg-indigo-100 text-indigo-700' },
-  EN_RUTA:    { label: 'En Ruta',      color: 'bg-purple-100 text-purple-700' },
-  ENTREGADO:  { label: 'Entregado',    color: 'bg-emerald-100 text-emerald-700' },
-  CANCELADO:  { label: 'Cancelado',    color: 'bg-slate-100 text-slate-500' },
+const STATUS_CONFIG: Record<OrderStatus, { label: string; variant: 'warning' | 'primary' | 'info' | 'purple' | 'success' | 'default' }> = {
+  PENDIENTE:  { label: 'Pendiente',    variant: 'warning' },
+  CONFIRMADO: { label: 'Confirmado',   variant: 'info' },
+  PREPARANDO: { label: 'Preparando',   variant: 'primary' },
+  EN_RUTA:    { label: 'En Ruta',      variant: 'purple' },
+  ENTREGADO:  { label: 'Entregado',    variant: 'success' },
+  CANCELADO:  { label: 'Cancelado',    variant: 'default' },
 };
 
 export default function OrdersPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [orderToAssignDriver, setOrderToAssignDriver] = useState<Order | null>(null);
   const [orderToDeliver, setOrderToDeliver] = useState<Order | null>(null);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const { data: ordersData, isLoading, refetch } = useQuery({
     queryKey: ['orders-list', { search, statusFilter }],
@@ -88,12 +102,18 @@ export default function OrdersPage() {
     queryClient.invalidateQueries({ queryKey: ['orders-list'] });
   };
 
-  const handleUpdateStatus = async (order: Order, newStatus: OrderStatus) => {
+  const handleConfirmCancelOrder = async () => {
+    if (!orderToCancel) return;
     try {
-      await orderService.updateStatus(order.id, newStatus);
+      setIsCanceling(true);
+      await orderService.updateStatus(orderToCancel.id, 'CANCELADO');
+      toast.success('Pedido cancelado', `El pedido ${orderToCancel.orderNumber} fue cancelado.`);
+      setOrderToCancel(null);
       refreshAll();
     } catch (err: any) {
-      alert(err?.message || 'Error al actualizar estado del pedido');
+      toast.error('Error al cancelar pedido', err?.message || 'No se pudo cancelar');
+    } finally {
+      setIsCanceling(false);
     }
   };
 
@@ -106,68 +126,56 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
-      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Pedidos y Despacho Logístico
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Control de rutas, asignación de choferes y entregas a domicilio con bidones
-          </p>
-        </div>
+      <PageHeader
+        title="Pedidos y Despacho Logístico"
+        description="Control de rutas, asignación de choferes y entregas a domicilio con bidones"
+        actions={
+          <Button
+            variant="primary"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Nuevo Pedido
+          </Button>
+        }
+      />
 
-        <Button
-          variant="primary"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={() => setIsCreateModalOpen(true)}
-          className="self-start sm:self-auto"
-        >
-          Nuevo Pedido
-        </Button>
-      </div>
-
+      {/* Métricas de Despacho */}
       <div className="shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-slate-500 block">Total Pedidos</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{totalOrders}</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
-            <Package className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="Total Pedidos"
+          value={totalOrders}
+          subtitle="En el rango seleccionado"
+          icon={<Package className="w-5 h-5" />}
+          iconColor="bg-blue-50 text-blue-600"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-slate-500 block">En Ruta / Despacho</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{enRutaCount}</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
-            <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="En Ruta / Despacho"
+          value={enRutaCount}
+          subtitle="Con chofer asignado"
+          icon={<Truck className="w-5 h-5" />}
+          iconColor="bg-purple-50 text-purple-600"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-slate-500 block">Pendientes</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{pendientesCount}</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="Pendientes"
+          value={pendientesCount}
+          subtitle="Por preparar o asignar"
+          icon={<Clock className="w-5 h-5" />}
+          iconColor="bg-amber-50 text-amber-600"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-[11px] font-semibold text-slate-500 block">Entregados Hoy</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{entregadosCount}</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700">
-            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-        </div>
+        <StatCard
+          label="Entregados Hoy"
+          value={entregadosCount}
+          subtitle="Distribución completada"
+          icon={<CheckCircle2 className="w-5 h-5" />}
+          iconColor="bg-emerald-50 text-emerald-600"
+        />
       </div>
 
+      {/* Buscador y Filtros */}
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
         <SearchInput
           value={search}
@@ -223,6 +231,7 @@ export default function OrdersPage() {
         />
       ) : (
         <>
+          {/* Vista móvil */}
           <div className="lg:hidden space-y-3">
             {orders.map((order) => (
               <OrderCard
@@ -230,7 +239,10 @@ export default function OrdersPage() {
                 order={order}
                 onAssignDriver={(o) => setOrderToAssignDriver(o)}
                 onDeliver={(o) => setOrderToDeliver(o)}
-                onUpdateStatus={(o, status) => handleUpdateStatus(o, status)}
+                onUpdateStatus={(o, status) => {
+                  if (status === 'CANCELADO') setOrderToCancel(o);
+                  else orderService.updateStatus(o.id, status).then(refreshAll);
+                }}
               />
             ))}
             <div className="text-center text-xs text-slate-400 font-medium py-2">
@@ -238,6 +250,7 @@ export default function OrdersPage() {
             </div>
           </div>
 
+          {/* Tabla Desktop */}
           <div className="hidden lg:flex flex-1 min-h-0 flex-col card overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
               <table className="w-full text-xs text-left border-collapse">
@@ -255,9 +268,9 @@ export default function OrdersPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {orders.map((order) => {
-                    const statusInfo = (STATUS_CONFIG as Record<string, { label: string; color: string }>)[order.status] || {
+                    const statusInfo = (STATUS_CONFIG as Record<string, { label: string; variant: 'warning' | 'primary' | 'info' | 'purple' | 'success' | 'default' }>)[order.status] || {
                       label: order.status,
-                      color: 'bg-slate-100 text-slate-600',
+                      variant: 'default' as const,
                     };
                     return (
                       <tr key={order.id} className="hover:bg-slate-50/70 transition-colors">
@@ -284,9 +297,9 @@ export default function OrdersPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
-                          <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${statusInfo.color}`}>
+                          <Badge variant={statusInfo.variant}>
                             {statusInfo.label}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
                           {order.driver ? (
@@ -314,27 +327,29 @@ export default function OrdersPage() {
                               <button
                                 onClick={() => setOrderToAssignDriver(order)}
                                 title="Asignar Repartidor"
-                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-2xs"
+                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-2xs flex items-center gap-1"
                               >
                                 <Truck className="w-3.5 h-3.5" />
+                                <span>Asignar</span>
                               </button>
                             )}
                             {order.status === 'EN_RUTA' && (
                               <button
                                 onClick={() => setOrderToDeliver(order)}
                                 title="Confirmar Entrega"
-                                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-2xs"
+                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition shadow-2xs flex items-center gap-1"
                               >
                                 <CheckCircle2 className="w-3.5 h-3.5" />
+                                <span>Entregar</span>
                               </button>
                             )}
                             {order.status === 'PENDIENTE' && (
                               <button
-                                onClick={() => handleUpdateStatus(order, 'CANCELADO')}
+                                onClick={() => setOrderToCancel(order)}
                                 title="Cancelar Pedido"
-                                className="px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[11px] font-bold rounded-lg transition shadow-2xs"
+                                className="px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 text-slate-600 text-[11px] font-bold rounded-lg transition shadow-2xs"
                               >
-                                ✕
+                                Cancelar
                               </button>
                             )}
                           </div>
@@ -353,13 +368,17 @@ export default function OrdersPage() {
         </>
       )}
 
+      {/* Modales */}
       <CreateOrderModal
         customers={customers}
         products={products}
         drivers={drivers}
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={refreshAll}
+        onSuccess={() => {
+          toast.success('Pedido creado', 'El nuevo pedido fue registrado.');
+          refreshAll();
+        }}
       />
 
       {orderToAssignDriver && (
@@ -368,7 +387,10 @@ export default function OrdersPage() {
           drivers={drivers}
           isOpen={!!orderToAssignDriver}
           onClose={() => setOrderToAssignDriver(null)}
-          onSuccess={refreshAll}
+          onSuccess={() => {
+            toast.success('Repartidor asignado', 'El pedido se encuentra listo para despacho.');
+            refreshAll();
+          }}
         />
       )}
 
@@ -377,9 +399,24 @@ export default function OrdersPage() {
           order={orderToDeliver}
           isOpen={!!orderToDeliver}
           onClose={() => setOrderToDeliver(null)}
-          onSuccess={refreshAll}
+          onSuccess={() => {
+            toast.success('Entrega completada', 'El inventario y cobro fueron liquidados.');
+            refreshAll();
+          }}
         />
       )}
+
+      {/* Confirmación para cancelar pedido */}
+      <ConfirmDialog
+        isOpen={!!orderToCancel}
+        onClose={() => setOrderToCancel(null)}
+        onConfirm={handleConfirmCancelOrder}
+        isLoading={isCanceling}
+        title="¿Cancelar este pedido?"
+        description={`¿Estás seguro de que deseas cancelar el pedido ${orderToCancel?.orderNumber} para ${orderToCancel?.customer?.name}? Esta acción no se puede deshacer.`}
+        confirmText="Sí, cancelar pedido"
+        variant="danger"
+      />
     </div>
   );
 }

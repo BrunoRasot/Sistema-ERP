@@ -16,8 +16,11 @@ import {
 import { importService } from '@/features/imports/services/import-service';
 import { ImportResult } from '@/features/imports/types/import';
 import { FileDropzone } from '@/features/imports/components/file-dropzone';
+import { useToast } from '@/components/ui/toast';
+import { PageHeader } from '@/components/ui/page-header';
 
 export default function ImportsPage() {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<'CUSTOMERS' | 'PRODUCTS'>('CUSTOMERS');
 
   const [customerFile, setCustomerFile] = useState<{ base64: string; name: string } | null>(null);
@@ -30,8 +33,9 @@ export default function ImportsPage() {
   const handleDownloadTemplate = async (type: 'customers' | 'products') => {
     try {
       await importService.downloadTemplate(type);
+      toast.success('Descarga iniciada', 'La plantilla de Excel se descargó correctamente.');
     } catch (err: any) {
-      alert(err?.message || 'Error al descargar la plantilla');
+      toast.error('Error al descargar', err?.message || 'No se pudo descargar la plantilla');
     }
   };
 
@@ -67,49 +71,45 @@ export default function ImportsPage() {
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:overflow-y-auto lg:h-full lg:pr-1">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Importación Masiva de Datos
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Carga y migración histórica desde archivos Excel (.xlsx) o CSV hacia Vivelite
-          </p>
-        </div>
-
-        <div className="flex bg-slate-200/80 p-1 rounded-2xl self-start sm:self-auto text-xs font-bold">
-          <button
-            onClick={() => {
-              setActiveTab('CUSTOMERS');
-              setImportResult(null);
-              setErrorMessage(null);
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
-              activeTab === 'CUSTOMERS'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Clientes y Envases</span>
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('PRODUCTS');
-              setImportResult(null);
-              setErrorMessage(null);
-            }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
-              activeTab === 'PRODUCTS'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Package className="w-4 h-4" />
-            <span>Productos y Almacén</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Importación Masiva de Datos"
+        subtitle="Carga y migración histórica desde archivos Excel (.xlsx) o CSV hacia Vivelite"
+        icon={<FileSpreadsheet className="w-5 h-5 text-emerald-600" />}
+        actions={
+          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200/80 text-xs font-bold">
+            <button
+              onClick={() => {
+                setActiveTab('CUSTOMERS');
+                setImportResult(null);
+                setErrorMessage(null);
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition ${
+                activeTab === 'CUSTOMERS'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              <span>Clientes y Envases</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('PRODUCTS');
+                setImportResult(null);
+                setErrorMessage(null);
+              }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition ${
+                activeTab === 'PRODUCTS'
+                  ? 'bg-white text-slate-900 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              <span>Productos y Almacén</span>
+            </button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7 space-y-5">

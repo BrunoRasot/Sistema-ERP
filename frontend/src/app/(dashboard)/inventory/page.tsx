@@ -5,15 +5,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Boxes,
   RotateCcw,
-  DollarSign,
-  TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   RefreshCw,
   AlertTriangle,
-  Loader2,
-  Calendar,
   Plus,
+  Package,
 } from 'lucide-react';
 import { inventoryService } from '@/features/inventory/services/inventory-service';
 import { productService } from '@/features/products/services/product-service';
@@ -21,7 +18,14 @@ import { Product } from '@/features/products/types/product';
 import { KardexMovementModal } from '@/features/inventory/components/kardex-movement-modal';
 import { formatCurrency } from '@/lib/utils';
 import { SkeletonMobileCard, SkeletonTable } from '@/components/ui/skeleton';
-import { useToast } from '@/components/ui/toast';
+import {
+  Button,
+  PageHeader,
+  StatCard,
+  Badge,
+  EmptyState,
+  useToast,
+} from '@/components/ui';
 
 export default function InventoryPage() {
   const queryClient = useQueryClient();
@@ -56,139 +60,96 @@ export default function InventoryPage() {
   const movements = kardexData?.data || [];
   const totalMovements = kardexData?.meta?.total || 0;
 
-  const movementBadge: Record<string, { label: string; bg: string; icon: any }> = {
-    ENTRADA: { label: 'Entrada', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: ArrowUpRight },
-    SALIDA: { label: 'Salida', bg: 'bg-rose-50 text-rose-700 border-rose-200', icon: ArrowDownRight },
-    AJUSTE: { label: 'Ajuste', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: RefreshCw },
-    MERMA: { label: 'Merma', bg: 'bg-amber-50 text-amber-700 border-amber-200', icon: AlertTriangle },
-    VENTA: { label: 'Venta', bg: 'bg-blue-50 text-blue-700 border-blue-200', icon: ArrowDownRight },
-    COMPRA: { label: 'Compra', bg: 'bg-teal-50 text-teal-700 border-teal-200', icon: ArrowUpRight },
-    DEVOLUCION: { label: 'Devolución', bg: 'bg-purple-50 text-purple-700 border-purple-200', icon: RotateCcw },
+  const movementBadge: Record<string, { label: string; variant: 'success' | 'danger' | 'info' | 'warning' | 'primary' | 'purple' | 'default' }> = {
+    ENTRADA: { label: 'Entrada', variant: 'success' },
+    SALIDA: { label: 'Salida', variant: 'danger' },
+    AJUSTE: { label: 'Ajuste', variant: 'info' },
+    MERMA: { label: 'Merma', variant: 'warning' },
+    VENTA: { label: 'Venta', variant: 'primary' },
+    COMPRA: { label: 'Compra', variant: 'success' },
+    DEVOLUCION: { label: 'Devolución', variant: 'purple' },
   };
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
-      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Inventario y Kardex
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Control físico de planta, auditoría de stock y valorización de mercadería
-          </p>
-        </div>
+      <PageHeader
+        title="Inventario y Kardex"
+        description="Control físico de planta, auditoría de stock y valorización de mercadería"
+        actions={
+          products.length > 0 ? (
+            <Button
+              variant="primary"
+              icon={<Boxes className="w-4 h-4" />}
+              onClick={() => setSelectedProductForMovement(products[0])}
+            >
+              Registrar Movimiento
+            </Button>
+          ) : undefined
+        }
+      />
 
-        {products.length > 0 && (
-          <button
-            onClick={() => setSelectedProductForMovement(products[0])}
-            className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm shadow-xs transition active:scale-95 self-start sm:self-auto"
-          >
-            <Boxes className="w-4 h-4" />
-            <span>Registrar Movimiento de Planta</span>
-          </button>
-        )}
-      </div>
-
+      {/* Tarjetas de Valorización de Inventario */}
       <div className="shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="card p-3 sm:p-3.5">
-          <span className="text-xs font-semibold text-slate-500">Valorizado al Costo</span>
-          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
-            {formatCurrency(summary?.totalValuedAtCost || 0)}
-          </p>
-          <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
-            Costo de adquisición/producción
-          </span>
-        </div>
+        <StatCard
+          label="Valorizado al Costo"
+          value={formatCurrency(summary?.totalValuedAtCost || 0)}
+          subtitle="Costo de producción/compra"
+          icon={<Package className="w-5 h-5" />}
+          iconColor="bg-blue-50 text-blue-600"
+        />
 
-        <div className="card p-3 sm:p-3.5">
-          <span className="text-xs font-semibold text-slate-500">Valor Proyectado Venta</span>
-          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
-            {formatCurrency(summary?.totalValuedAtPrice || 0)}
-          </p>
-          <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
-            Valor a precio de lista
-          </span>
-        </div>
+        <StatCard
+          label="Valor Proyectado Venta"
+          value={formatCurrency(summary?.totalValuedAtPrice || 0)}
+          subtitle="Valor a precio de lista"
+          icon={<ArrowUpRight className="w-5 h-5" />}
+          iconColor="bg-emerald-50 text-emerald-600"
+        />
 
-        <div className="card p-3 sm:p-3.5">
-          <span className="text-xs font-semibold text-slate-500">Stock Físico Total</span>
-          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
-            {summary?.totalUnitsInWarehouse || 0} unid.
-          </p>
-          <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
-            En {summary?.totalSkus || 0} SKUs registrados
-          </span>
-        </div>
+        <StatCard
+          label="Stock Físico Total"
+          value={`${summary?.totalUnitsInWarehouse || 0} unid.`}
+          subtitle={`En ${summary?.totalSkus || 0} SKUs registrados`}
+          icon={<Boxes className="w-5 h-5" />}
+          iconColor="bg-purple-50 text-purple-600"
+        />
 
-        <div className="card p-3 sm:p-3.5">
-          <span className="text-xs font-semibold text-slate-500">Bidones Llenos en Planta</span>
-          <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">
-            {summary?.returnableUnitsInWarehouse || 0} unid.
-          </p>
-          <span className="text-[10px] text-slate-400 font-medium mt-0.5 block">
-            Listos para cargar a ruta
-          </span>
-        </div>
+        <StatCard
+          label="Bidones Llenos en Planta"
+          value={`${summary?.returnableUnitsInWarehouse || 0} unid.`}
+          subtitle="Disponibles para despacho"
+          icon={<RotateCcw className="w-5 h-5" />}
+          iconColor="bg-amber-50 text-amber-600"
+        />
       </div>
 
       {/* Filtros del Kardex */}
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-bold text-slate-800">Historial de Movimientos de Kardex</h2>
-          <span className="text-xs text-slate-400">{totalMovements} registros</span>
+          <span className="text-xs text-slate-400 font-medium">{totalMovements} registros</span>
         </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs font-semibold">
-          <button
-            onClick={() => setMovementFilter('')}
-            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
-              movementFilter === ''
-                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Todos
-          </button>
-          <button
-            onClick={() => setMovementFilter('ENTRADA')}
-            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
-              movementFilter === 'ENTRADA'
-                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Entradas (Producción)
-          </button>
-          <button
-            onClick={() => setMovementFilter('SALIDA')}
-            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
-              movementFilter === 'SALIDA'
-                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Salidas
-          </button>
-          <button
-            onClick={() => setMovementFilter('AJUSTE')}
-            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
-              movementFilter === 'AJUSTE'
-                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Ajustes de Conteo
-          </button>
-          <button
-            onClick={() => setMovementFilter('MERMA')}
-            className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
-              movementFilter === 'MERMA'
-                ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-            }`}
-          >
-            Mermas
-          </button>
+          {[
+            { label: 'Todos', value: '' },
+            { label: 'Entradas (Producción)', value: 'ENTRADA' },
+            { label: 'Salidas', value: 'SALIDA' },
+            { label: 'Ajustes de Conteo', value: 'AJUSTE' },
+            { label: 'Mermas', value: 'MERMA' },
+          ].map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setMovementFilter(tab.value)}
+              className={`px-3 py-1.5 rounded-xl border whitespace-nowrap transition ${
+                movementFilter === tab.value
+                  ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -205,30 +166,30 @@ export default function InventoryPage() {
           </div>
         </>
       ) : movements.length === 0 ? (
-        <div className="py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200 p-8 space-y-3">
-          <Boxes className="w-10 h-10 text-slate-300 mx-auto" />
-          <p className="text-sm font-bold text-slate-800">No hay movimientos registrados en el Kardex</p>
-          <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Los movimientos de producción, ventas y mermas se registrarán aquí automáticamente.
-          </p>
-          {products.length > 0 && (
-            <button
-              onClick={() => setSelectedProductForMovement(products[0])}
-              className="mt-2 inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white text-xs font-bold rounded-xl shadow-xs hover:bg-slate-800 transition active:scale-95"
-            >
-              <Boxes className="w-3.5 h-3.5" />
-              <span>Registrar Movimiento de Planta</span>
-            </button>
-          )}
-        </div>
+        <EmptyState
+          icon={<Boxes className="w-8 h-8" />}
+          title="No hay movimientos registrados en el Kardex"
+          description="Los movimientos de producción, ventas y mermas se registrarán aquí automáticamente."
+          action={
+            products.length > 0 ? (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Boxes className="w-4 h-4" />}
+                onClick={() => setSelectedProductForMovement(products[0])}
+              >
+                Registrar Movimiento de Planta
+              </Button>
+            ) : undefined
+          }
+        />
       ) : (
         <>
-          {/* Vista Móvil (< lg): Cards Táctiles de Kardex */}
+          {/* Vista Móvil */}
           <div className="lg:hidden space-y-3">
             <div className="card divide-y divide-slate-100 overflow-hidden">
               {movements.map((m) => {
-                const badge = movementBadge[m.movementType] || { label: m.movementType, bg: 'bg-slate-100 text-slate-700', icon: Boxes };
-                const Icon = badge.icon;
+                const badge = movementBadge[m.movementType] || { label: m.movementType, variant: 'default' as const };
                 const dateStr = new Date(m.createdAt).toLocaleString('es-PE', {
                   dateStyle: 'short',
                   timeStyle: 'short',
@@ -238,19 +199,18 @@ export default function InventoryPage() {
                   <div key={m.id} className="p-3.5 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-bold text-slate-900">{m.product?.name}</span>
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.bg}`}>
-                        <Icon className="w-3 h-3" />
+                      <Badge variant={badge.variant}>
                         {badge.label}
-                      </span>
+                      </Badge>
                     </div>
-                    {m.reason && <p className="text-xs text-slate-500">{m.reason}</p>}
+                    {m.reason && <p className="text-xs text-slate-500 font-medium">{m.reason}</p>}
                     <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100">
                       <span className="text-slate-400 text-[11px]">{dateStr}</span>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-slate-400 text-xs">
                           {m.previousStock} ➔
                         </span>
-                        <span className="font-black text-slate-900 text-xs">
+                        <span className="font-bold text-slate-900 text-xs">
                           {m.newStock} unid.
                         </span>
                       </div>
@@ -264,7 +224,7 @@ export default function InventoryPage() {
             </div>
           </div>
 
-          {/* Vista Desktop (>= lg): Tabla Formal de Kardex con Scroll Solo en Filas */}
+          {/* Tabla Desktop */}
           <div className="hidden lg:flex flex-1 min-h-0 flex-col card overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
               <table className="w-full text-xs text-left border-collapse">
@@ -281,8 +241,7 @@ export default function InventoryPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {movements.map((m) => {
-                    const badge = movementBadge[m.movementType] || { label: m.movementType, bg: 'bg-slate-100 text-slate-700', icon: Boxes };
-                    const Icon = badge.icon;
+                    const badge = movementBadge[m.movementType] || { label: m.movementType, variant: 'default' as const };
                     const dateStr = new Date(m.createdAt).toLocaleString('es-PE', {
                       dateStyle: 'short',
                       timeStyle: 'short',
@@ -293,10 +252,9 @@ export default function InventoryPage() {
                         <td className="py-3 px-4 text-slate-600 font-mono text-xs whitespace-nowrap">{dateStr}</td>
                         <td className="py-3 px-4 font-bold text-slate-900">{m.product?.name}</td>
                         <td className="py-3 px-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.bg}`}>
-                            <Icon className="w-3 h-3" />
+                          <Badge variant={badge.variant}>
                             {badge.label}
-                          </span>
+                          </Badge>
                         </td>
                         <td className="py-3 px-4 text-center font-bold text-sm whitespace-nowrap">
                           <span className={m.quantity >= 0 ? 'text-emerald-600' : 'text-rose-600'}>
@@ -346,7 +304,7 @@ export default function InventoryPage() {
             queryClient.invalidateQueries({ queryKey: ['kardex'] });
             queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
             queryClient.invalidateQueries({ queryKey: ['products'] });
-            toast.success('Movimiento registrado con éxito', 'El Kardex y stock se actualizaron correctamente');
+            toast.success('Movimiento registrado', 'El Kardex y stock físico se actualizaron.');
           }}
         />
       )}

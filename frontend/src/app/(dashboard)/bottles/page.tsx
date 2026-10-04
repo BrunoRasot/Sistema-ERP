@@ -24,7 +24,7 @@ import { Customer } from '@/features/customers/types/customer';
 import { BottleMovementModal } from '@/features/customers/components/bottle-movement-modal';
 import { SkeletonMobileCard, SkeletonTable } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
-import { Modal, Input, Button } from '@/components/ui';
+import { Modal, Input, Button, PageHeader, StatCard, Badge } from '@/components/ui';
 
 export default function BottlesPage() {
   const queryClient = useQueryClient();
@@ -111,101 +111,64 @@ export default function BottlesPage() {
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
-      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-            Control de Bidones Retornables
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Monitoreo en tiempo real de bidones en custodia de clientes, planta de envasado y kardex
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <button
-            onClick={refreshAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold shadow-xs transition active:scale-95"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-slate-500" />
-            <span>Actualizar</span>
-          </button>
-          <button
-            onClick={handleOpenPlantModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-xs transition active:scale-95"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>Ajustar Stock Planta</span>
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title="Control de Bidones Retornables"
+        subtitle="Monitoreo en tiempo real de bidones en custodia de clientes, planta de envasado y kardex"
+        icon={<RotateCcw className="w-5 h-5 text-blue-600" />}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              icon={<RefreshCw className="w-3.5 h-3.5" />}
+              onClick={refreshAll}
+            >
+              Actualizar
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Sliders className="w-3.5 h-3.5" />}
+              onClick={handleOpenPlantModal}
+            >
+              Ajustar Stock Planta
+            </Button>
+          </div>
+        }
+      />
 
       <div className="shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">En Custodia (Clientes)</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-slate-900">
-              {summary?.totalInCustomers ?? 0}
-              <span className="text-xs font-medium text-slate-400 ml-1">bidones</span>
-            </p>
-            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">
-              En {summary?.customersWithBottlesCount ?? 0} clientes activos
-            </p>
-          </div>
-        </div>
+        <StatCard
+          title="En Custodia (Clientes)"
+          value={`${summary?.totalInCustomers ?? 0} bidones`}
+          subtitle={`En ${summary?.customersWithBottlesCount ?? 0} clientes activos`}
+          icon={<Users className="w-4 h-4" />}
+          variant="amber"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Llenos en Planta (Stock)</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-slate-900">
-              {summary?.totalFullInPlant ?? (plantStock?.totalFull || 0)}
-              <span className="text-xs font-medium text-slate-400 ml-1">llenos</span>
-            </p>
-            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Disponibles para entrega inmediata</p>
-          </div>
-        </div>
+        <StatCard
+          title="Llenos en Planta (Stock)"
+          value={`${summary?.totalFullInPlant ?? (plantStock?.totalFull || 0)} llenos`}
+          subtitle="Disponibles para entrega inmediata"
+          icon={<CheckCircle2 className="w-4 h-4" />}
+          variant="emerald"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Vacíos en Planta</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
-              <Package className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-slate-900">
-              {summary?.totalEmptyInPlant ?? (plantStock?.totalEmpty || 0)}
-              <span className="text-xs font-medium text-slate-400 ml-1">vacíos</span>
-            </p>
-            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Listos para lavado y recarga</p>
-          </div>
-        </div>
+        <StatCard
+          title="Vacíos en Planta"
+          value={`${summary?.totalEmptyInPlant ?? (plantStock?.totalEmpty || 0)} vacíos`}
+          subtitle="Listos para lavado y recarga"
+          icon={<Package className="w-4 h-4" />}
+          variant="sky"
+        />
 
-        <div className="card p-3 sm:p-3.5 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Parque Total de Envases</span>
-            <div className="p-1.5 sm:p-2 rounded-xl bg-slate-100 text-slate-700">
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-2.5">
-            <p className="text-lg sm:text-xl font-bold text-slate-900">
-              {summary?.totalBottlesInCirculation ?? 0}
-              <span className="text-xs font-medium text-slate-400 ml-1">total</span>
-            </p>
-            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">Activo fijo total en circulación</p>
-          </div>
-        </div>
+        <StatCard
+          title="Parque Total de Envases"
+          value={`${summary?.totalBottlesInCirculation ?? 0} total`}
+          subtitle="Activo fijo en circulación"
+          icon={<Layers className="w-4 h-4" />}
+          variant="default"
+        />
       </div>
 
       <div className="shrink-0 flex border-b border-slate-200 gap-6">

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { vi } from 'vitest';
 import { PosTerminal } from '@/features/sales/components/pos-terminal';
 import { Product } from '@/features/products/types/product';
 import { Customer } from '@/features/customers/types/customer';

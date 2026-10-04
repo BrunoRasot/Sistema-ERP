@@ -14,10 +14,18 @@ import {
   Package,
   Users,
   ArrowRight,
-  Loader2,
   DollarSign,
+  Boxes,
 } from 'lucide-react';
-import { SkeletonKpiCard, SkeletonMobileCard } from '@/components/ui/skeleton';
+import {
+  StatCard,
+  PageHeader,
+  Badge,
+  Button,
+  EmptyState,
+  SkeletonKpiCard,
+  SkeletonMobileCard,
+} from '@/components/ui';
 
 export default function DashboardPage() {
   const { data: stats, isLoading, isError, refetch } = useQuery({
@@ -72,13 +80,15 @@ export default function DashboardPage() {
             No se pudo conectar con el servidor o sincronizar las métricas.
           </p>
         </div>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => refetch()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition active:scale-95 mx-auto"
+          icon={<RotateCcw className="w-3.5 h-3.5" />}
+          className="mx-auto"
         >
-          <RotateCcw className="w-3.5 h-3.5" />
-          <span>Reintentar Conexión</span>
-        </button>
+          Reintentar Conexión
+        </Button>
       </div>
     );
   }
@@ -87,121 +97,100 @@ export default function DashboardPage() {
   const maxChartValue = Math.max(...weeklyChart.map((d: any) => d.total), 1);
   const weeklyTotal = weeklyChart.reduce((acc: number, d: any) => acc + (Number(d.total) || 0), 0);
 
+  const getOrderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'ENTREGADO':
+      case 'DELIVERED':
+        return <Badge variant="success">Entregado</Badge>;
+      case 'EN_RUTA':
+        return <Badge variant="purple">En Ruta</Badge>;
+      case 'PREPARANDO':
+        return <Badge variant="primary">Preparando</Badge>;
+      case 'CONFIRMADO':
+        return <Badge variant="info">Confirmado</Badge>;
+      case 'CANCELADO':
+        return <Badge variant="default">Cancelado</Badge>;
+      default:
+        return <Badge variant="warning">Pendiente</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6 lg:overflow-y-auto lg:h-full lg:pr-1">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Panel de Control Operativo
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Métricas clave del día, flujo de ventas y distribución en Ica
-          </p>
-        </div>
+      <PageHeader
+        title="Panel de Control Operativo"
+        description="Métricas clave del día, flujo de ventas y distribución en Ica"
+        actions={
+          metrics.isShiftOpen ? (
+            <Link
+              href="/sales"
+              className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 shadow-2xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block leading-tight">
+                  Turno Abierto
+                </span>
+                <span className="text-xs font-bold text-slate-900 leading-tight">
+                  {metrics.cashRegisterName || 'Caja Almacén Ica'}
+                </span>
+              </div>
+            </Link>
+          ) : (
+            <Link
+              href="/sales"
+              className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 shadow-2xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-slate-400" />
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block leading-tight">
+                  Turno Cerrado
+                </span>
+                <span className="text-xs font-bold text-slate-900 leading-tight">
+                  Abrir caja para vender
+                </span>
+              </div>
+            </Link>
+          )
+        }
+      />
 
-        {metrics.isShiftOpen ? (
-          <Link
-            href="/sales"
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 shadow-2xs self-start sm:self-auto"
-          >
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 block leading-tight">
-                Turno Abierto
-              </span>
-              <span className="text-xs font-bold text-slate-900 leading-tight">
-                {metrics.cashRegisterName || 'Caja Almacén Ica'}
-              </span>
-            </div>
-          </Link>
-        ) : (
-          <Link
-            href="/sales"
-            className="inline-flex items-center gap-2.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-900 text-xs font-semibold transition-all hover:bg-slate-50 shadow-2xs self-start sm:self-auto"
-          >
-            <span className="w-2 h-2 rounded-full bg-slate-400" />
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block leading-tight">
-                Turno Cerrado
-              </span>
-              <span className="text-xs font-bold text-slate-900 leading-tight">
-                Abrir caja para vender
-              </span>
-            </div>
-          </Link>
-        )}
-      </div>
-
+      {/* Grid de Métricas Principales */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Ventas Hoy</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
-              {formatCurrency(metrics.todaySalesTotal)}
-            </p>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
-              {metrics.todaySalesCount} ventas procesadas
-            </span>
-          </div>
-        </div>
+        <StatCard
+          label="Ventas Hoy"
+          value={formatCurrency(metrics.todaySalesTotal)}
+          subtitle={`${metrics.todaySalesCount} ventas procesadas`}
+          icon={<DollarSign className="w-5 h-5" />}
+          iconColor="bg-blue-50 text-blue-600"
+        />
 
-        <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-semibold text-slate-500">En Ruta</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-              <Truck className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
-              {metrics.activeOrdersCount}
-            </p>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
-              En preparación o despacho
-            </span>
-          </div>
-        </div>
+        <StatCard
+          label="Pedidos en Ruta"
+          value={metrics.activeOrdersCount}
+          subtitle="En preparación o despacho"
+          icon={<Truck className="w-5 h-5" />}
+          iconColor="bg-purple-50 text-purple-600"
+        />
 
-        <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Bidones Prestados</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-              <RotateCcw className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
-              {metrics.bottlesInHolding} unid.
-            </p>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
-              En posesión de clientes
-            </span>
-          </div>
-        </div>
+        <StatCard
+          label="Bidones Prestados"
+          value={`${metrics.bottlesInHolding} unid.`}
+          subtitle="En custodia de clientes"
+          icon={<RotateCcw className="w-5 h-5" />}
+          iconColor="bg-amber-50 text-amber-600"
+        />
 
-        <div className="card p-3.5 sm:p-4 flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] sm:text-xs font-semibold text-slate-500">Por Cobrar</span>
-            <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 sm:mt-3">
-            <p className="text-lg sm:text-2xl font-bold tracking-tight text-slate-900">
-              {formatCurrency(metrics.totalPendingDebt)}
-            </p>
-            <span className="text-[10px] sm:text-[11px] text-slate-400 font-medium block mt-0.5">
-              Saldo pendiente en créditos
-            </span>
-          </div>
-        </div>
+        <StatCard
+          label="Por Cobrar"
+          value={formatCurrency(metrics.totalPendingDebt)}
+          subtitle="Saldo pendiente en créditos"
+          icon={<AlertTriangle className="w-5 h-5" />}
+          iconColor="bg-rose-50 text-rose-600"
+        />
       </div>
 
+      {/* Gráfico y Acciones Rápidas */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="card p-5 lg:col-span-2 flex flex-col justify-between">
           <div className="flex items-center justify-between mb-4">
@@ -298,105 +287,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="lg:hidden space-y-4">
-        <div className="card overflow-hidden">
-          <div className="p-3.5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Pedidos Recientes</h2>
-              <p className="text-[11px] text-slate-400">Últimos pedidos registrados</p>
-            </div>
-            <Link
-              href="/orders"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
-            >
-              <span>Ver todos</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          {recentOrders.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 font-medium">
-              No hay pedidos recientes registrados hoy.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {recentOrders.map((order: any) => (
-                <div key={order.id} className="p-3 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-xs text-slate-800">
-                        {order.orderNumber}
-                      </span>
-                      <span
-                        className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                          order.status === 'DELIVERED' || order.status === 'ENTREGADO'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : order.status === 'EN_RUTA'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'bg-amber-100 text-amber-700'
-                        }`}
-                      >
-                        {order.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 mt-0.5 truncate max-w-[200px]">
-                      {order.customer?.name || 'Cliente'}
-                    </p>
-                  </div>
-                  <span className="text-xs font-black text-slate-900 shrink-0">
-                    {formatCurrency(order.total)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="card overflow-hidden">
-          <div className="p-3.5 border-b border-slate-100 flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-bold text-slate-900">Ventas Recientes</h2>
-              <p className="text-[11px] text-slate-400">Últimos cobros procesados</p>
-            </div>
-            <Link
-              href="/sales"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
-            >
-              <span>Ver todas</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-          {recentSales.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400 font-medium">
-              No hay ventas recientes registradas hoy.
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {recentSales.map((sale: any) => (
-                <div key={sale.id} className="p-3 flex items-center justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono font-bold text-xs text-slate-800">
-                        {sale.saleNumber}
-                      </span>
-                      <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-                        {sale.saleType || 'CONTADO'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 mt-0.5 truncate max-w-[200px]">
-                      {sale.customer?.name || 'Cliente Mostrador'}
-                    </p>
-                  </div>
-                  <span className="text-xs font-black text-slate-900 shrink-0">
-                    {formatCurrency(sale.total)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="hidden lg:grid grid-cols-2 gap-6">
+      {/* Listas Recientes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Pedidos Recientes */}
         <div className="card overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <div>
@@ -411,56 +304,43 @@ export default function DashboardPage() {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-2.5">N° Pedido</th>
-                  <th className="px-4 py-2.5">Cliente</th>
-                  <th className="px-4 py-2.5 text-center">Estado</th>
-                  <th className="px-4 py-2.5 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {recentOrders.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
-                      No hay pedidos recientes registrados hoy.
-                    </td>
-                  </tr>
-                ) : (
-                  recentOrders.map((order: any) => (
-                    <tr key={order.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-4 py-3 font-mono font-bold text-slate-900 whitespace-nowrap">
+
+          <div className="divide-y divide-slate-100">
+            {recentOrders.length === 0 ? (
+              <EmptyState
+                icon={<Truck className="w-6 h-6" />}
+                title="Sin pedidos recientes"
+                description="No hay pedidos registrados en la jornada."
+              />
+            ) : (
+              recentOrders.map((order: any) => (
+                <div key={order.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-xs text-slate-900">
                         {order.orderNumber}
-                      </td>
-                      <td className="px-4 py-3 font-medium text-slate-800 truncate max-w-[150px]">
-                        {order.customer?.name || 'Cliente'}
-                      </td>
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold ${
-                            order.status === 'DELIVERED' || order.status === 'ENTREGADO'
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : order.status === 'EN_RUTA'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'bg-amber-100 text-amber-700'
-                          }`}
-                        >
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-black text-slate-900 whitespace-nowrap">
-                        {formatCurrency(order.total)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </span>
+                      {getOrderStatusBadge(order.status)}
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 truncate font-medium">
+                      {order.customer?.name || 'Cliente'}
+                    </p>
+                    {order.driver && (
+                      <span className="text-[11px] text-slate-400 block mt-0.5">
+                        Repartidor: {order.driver.firstName} {order.driver.lastName}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm font-bold text-slate-900 shrink-0">
+                    {formatCurrency(order.total)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
+        {/* Ventas Recientes */}
         <div className="card overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <div>
@@ -475,45 +355,34 @@ export default function DashboardPage() {
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead className="bg-slate-50 border-b border-slate-200/80 text-slate-500 font-semibold uppercase tracking-wider">
-                <tr>
-                  <th className="px-4 py-2.5">Comprobante</th>
-                  <th className="px-4 py-2.5">Cliente</th>
-                  <th className="px-4 py-2.5 text-center">Tipo</th>
-                  <th className="px-4 py-2.5 text-right">Monto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {recentSales.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-slate-400">
-                      No hay ventas recientes registradas hoy.
-                    </td>
-                  </tr>
-                ) : (
-                  recentSales.map((sale: any) => (
-                    <tr key={sale.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-4 py-3 font-mono font-bold text-slate-900 whitespace-nowrap">
+
+          <div className="divide-y divide-slate-100">
+            {recentSales.length === 0 ? (
+              <EmptyState
+                icon={<DollarSign className="w-6 h-6" />}
+                title="Sin ventas recientes"
+                description="No hay ventas registradas hoy."
+              />
+            ) : (
+              recentSales.map((sale: any) => (
+                <div key={sale.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-xs text-slate-900">
                         {sale.saleNumber}
-                      </td>
-                      <td className="px-4 py-3 font-medium text-slate-800 truncate max-w-[150px]">
-                        {sale.customer?.name || 'Cliente Mostrador'}
-                      </td>
-                      <td className="px-4 py-3 text-center whitespace-nowrap">
-                        <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600">
-                          {sale.saleType || 'CONTADO'}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right font-black text-slate-900 whitespace-nowrap">
-                        {formatCurrency(sale.total)}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </span>
+                      <Badge variant="default">{sale.saleType || 'CONTADO'}</Badge>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 truncate font-medium">
+                      {sale.customer?.name || 'Cliente Mostrador'}
+                    </p>
+                  </div>
+                  <span className="text-sm font-bold text-slate-900 shrink-0">
+                    {formatCurrency(sale.total)}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

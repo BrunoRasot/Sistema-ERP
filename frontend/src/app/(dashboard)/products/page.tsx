@@ -18,12 +18,22 @@ import { EditProductModal } from '@/features/products/components/edit-product-mo
 import { KardexMovementModal } from '@/features/inventory/components/kardex-movement-modal';
 import { ProductCard } from '@/features/products/components/product-card';
 import { formatCurrency } from '@/lib/utils';
-import { Button, SearchInput, LoadingState, EmptyState } from '@/components/ui';
+import {
+  Button,
+  SearchInput,
+  LoadingState,
+  EmptyState,
+  PageHeader,
+  StatCard,
+  Badge,
+  ConfirmDialog,
+  useToast,
+} from '@/components/ui';
 
 const UNIT_LABELS: Record<string, string> = {
   UNIDAD: 'Unidad',
   BIDON_20L: 'Bidón 20L',
-  BIDON_10L: 'BidON 10L',
+  BIDON_10L: 'Bidón 10L',
   CAJA: 'Caja',
   PAQUETE: 'Paquete',
   LITRO: 'Litro',
@@ -31,11 +41,14 @@ const UNIT_LABELS: Record<string, string> = {
 
 export default function ProductsPage() {
   const queryClient = useQueryClient();
+  const toast = useToast();
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'ACTIVE' | 'INACTIVE' | 'RETURNABLE' | 'LOW_STOCK'>('ALL');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [selectedProductForMovement, setSelectedProductForMovement] = useState<Product | null>(null);
+  const [productToToggleStatus, setProductToToggleStatus] = useState<Product | null>(null);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -64,70 +77,72 @@ export default function ProductsPage() {
   const returnableCount = products.filter((p) => p.isReturnable).length;
   const lowStockCount = products.filter((p) => p.stock <= p.minStock).length;
 
-  const handleToggleStatus = async (product: Product) => {
-    const newStatus = product.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    const confirmMsg =
-      newStatus === 'INACTIVE'
-        ? `¿Deseas deshabilitar "${product.name}"? El producto ya no aparecerá disponible para ventas en el Terminal POS.`
-        : `¿Deseas habilitar "${product.name}" para venta activa en catálogo?`;
-
-    if (!confirm(confirmMsg)) return;
+  const handleConfirmToggleStatus = async () => {
+    if (!productToToggleStatus) return;
+    const newStatus = productToToggleStatus.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
 
     try {
-      await productService.updateProduct(product.id, { status: newStatus });
+      setIsTogglingStatus(true);
+      await productService.updateProduct(productToToggleStatus.id, { status: newStatus });
+      toast.success(
+        newStatus === 'ACTIVE' ? 'Producto habilitado' : 'Producto deshabilitado',
+        `"${productToToggleStatus.name}" fue actualizado correctamente.`,
+      );
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
       queryClient.invalidateQueries({ queryKey: ['products-pos'] });
+      setProductToToggleStatus(null);
     } catch (err: any) {
-      alert(err?.message || 'Error al cambiar estado del producto');
+      toast.error('Error al actualizar estado', err?.message || 'No se pudo cambiar el estado');
+    } finally {
+      setIsTogglingStatus(false);
     }
   };
 
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
-      <div className="shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Catálogo de Productos</h1>
-          <p className="text-xs sm:text-sm text-slate-500">
-            Línea de agua purificada, envases retornables, bidones y accesorios
-          </p>
-        </div>
-        <Button
-          variant="primary"
-          icon={<PlusCircle className="w-4 h-4" />}
-          onClick={() => setIsCreateModalOpen(true)}
-          className="self-start sm:self-auto"
-        >
-          Nuevo Producto
-        </Button>
-      </div>
+      <PageHeader
+        title="Catálogo de Productos"
+        description="Línea de agua purificada, envases retornables, bidones y accesorios"
+        actions={
+          <Button
+            variant="primary"
+            icon={<PlusCircle className="w-4 h-4" />}
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            Nuevo Producto
+          </Button>
+        }
+      />
 
+      {/* Grid de Métricas de Catálogo */}
       <div className="shrink-0 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500">Productos en Catálogo</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{total} SKUs</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><Package className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-        </div>
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500">Línea Retornable</span>
-            <p className="text-lg sm:text-xl font-bold text-slate-900 mt-0.5">{returnableCount} ítems</p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-        </div>
-        <div className="card p-3 sm:p-3.5 flex items-center justify-between">
-          <div>
-            <span className="text-xs font-semibold text-slate-500">Stock Crítico (Alerta)</span>
-            <p className={`text-lg sm:text-xl font-bold mt-0.5 ${lowStockCount > 0 ? 'text-rose-600' : 'text-slate-900'}`}>
-              {lowStockCount} ítems
-            </p>
-          </div>
-          <div className="p-2 sm:p-2.5 rounded-xl bg-slate-100 text-slate-700"><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /></div>
-        </div>
+        <StatCard
+          label="Productos en Catálogo"
+          value={`${total} SKUs`}
+          subtitle="Registrados en el sistema"
+          icon={<Package className="w-5 h-5" />}
+          iconColor="bg-blue-50 text-blue-600"
+        />
+
+        <StatCard
+          label="Línea Retornable"
+          value={`${returnableCount} ítems`}
+          subtitle="Envases con control de préstamo"
+          icon={<RotateCcw className="w-5 h-5" />}
+          iconColor="bg-amber-50 text-amber-600"
+        />
+
+        <StatCard
+          label="Stock Crítico (Alerta)"
+          value={`${lowStockCount} ítems`}
+          subtitle="Por debajo del umbral mínimo"
+          icon={<AlertTriangle className="w-5 h-5" />}
+          iconColor={lowStockCount > 0 ? 'bg-rose-50 text-rose-600' : 'bg-slate-100 text-slate-700'}
+        />
       </div>
 
+      {/* Filtros y Búsqueda */}
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
         <SearchInput
           value={search}
@@ -173,7 +188,8 @@ export default function ProductsPage() {
                 : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <RotateCcw className="w-3.5 h-3.5" /><span>Retornables</span>
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Retornables</span>
           </button>
           <button
             onClick={() => setFilterType('LOW_STOCK')}
@@ -183,7 +199,8 @@ export default function ProductsPage() {
                 : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <AlertTriangle className="w-3.5 h-3.5" /><span>Stock Crítico ({lowStockCount})</span>
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>Stock Crítico ({lowStockCount})</span>
           </button>
         </div>
       </div>
@@ -215,6 +232,7 @@ export default function ProductsPage() {
         />
       ) : (
         <>
+          {/* Vista móvil */}
           <div className="lg:hidden space-y-3">
             {products.map((product) => (
               <ProductCard
@@ -222,7 +240,7 @@ export default function ProductsPage() {
                 product={product}
                 onOpenMovementModal={(p) => setSelectedProductForMovement(p)}
                 onEditProduct={(p) => setProductToEdit(p)}
-                onToggleStatus={handleToggleStatus}
+                onToggleStatus={(p) => setProductToToggleStatus(p)}
               />
             ))}
             <div className="text-center text-xs text-slate-400 font-medium py-2">
@@ -230,6 +248,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
+          {/* Tabla desktop */}
           <div className="hidden lg:flex flex-1 min-h-0 flex-col card overflow-hidden">
             <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
               <table className="w-full text-xs text-left border-collapse">
@@ -298,24 +317,18 @@ export default function ProductsPage() {
                         <td className="px-4 py-3 text-center text-slate-500">{product.minStock}</td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
                           <div className="flex flex-col items-center gap-1">
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                product.status === 'ACTIVE'
-                                  ? 'bg-emerald-100 text-emerald-700'
-                                  : 'bg-rose-100 text-rose-700'
-                              }`}
-                            >
+                            <Badge variant={product.status === 'ACTIVE' ? 'success' : 'danger'}>
                               {product.status === 'ACTIVE' ? 'Activo' : 'Deshabilitado'}
-                            </span>
+                            </Badge>
                             {product.isReturnable && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 text-[10px] font-bold">
-                                <RotateCcw className="w-2.5 h-2.5" /> Retornable
-                              </span>
+                              <Badge variant="warning" size="sm">
+                                Retornable
+                              </Badge>
                             )}
                             {isLow && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 text-[10px] font-bold">
-                                <AlertTriangle className="w-2.5 h-2.5" /> Stock bajo
-                              </span>
+                              <Badge variant="danger" size="sm">
+                                Stock bajo
+                              </Badge>
                             )}
                           </div>
                         </td>
@@ -338,7 +351,7 @@ export default function ProductsPage() {
                               Stock
                             </button>
                             <button
-                              onClick={() => handleToggleStatus(product)}
+                              onClick={() => setProductToToggleStatus(product)}
                               title={product.status === 'ACTIVE' ? 'Deshabilitar producto para ventas' : 'Habilitar producto'}
                               className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold rounded-lg border transition shadow-2xs ${
                                 product.status === 'ACTIVE'
@@ -365,11 +378,13 @@ export default function ProductsPage() {
         </>
       )}
 
+      {/* Modales */}
       <CreateProductModal
         categories={categories}
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={() => {
+          toast.success('Producto creado', 'El nuevo SKU fue añadido al catálogo.');
           queryClient.invalidateQueries({ queryKey: ['products'] });
           queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
         }}
@@ -381,6 +396,7 @@ export default function ProductsPage() {
         isOpen={!!productToEdit}
         onClose={() => setProductToEdit(null)}
         onSuccess={() => {
+          toast.success('Producto modificado', 'Los datos del producto se guardaron correctamente.');
           queryClient.invalidateQueries({ queryKey: ['products'] });
           queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
           queryClient.invalidateQueries({ queryKey: ['products-pos'] });
@@ -393,13 +409,29 @@ export default function ProductsPage() {
           isOpen={!!selectedProductForMovement}
           onClose={() => setSelectedProductForMovement(null)}
           onSuccess={() => {
+            toast.success('Movimiento registrado', 'El Kardex y stock se actualizaron.');
             queryClient.invalidateQueries({ queryKey: ['products'] });
             queryClient.invalidateQueries({ queryKey: ['inventory-summary'] });
             queryClient.invalidateQueries({ queryKey: ['kardex'] });
           }}
         />
       )}
+
+      {/* Confirmación para cambiar estado */}
+      <ConfirmDialog
+        isOpen={!!productToToggleStatus}
+        onClose={() => setProductToToggleStatus(null)}
+        onConfirm={handleConfirmToggleStatus}
+        isLoading={isTogglingStatus}
+        title={productToToggleStatus?.status === 'ACTIVE' ? '¿Deshabilitar producto?' : '¿Habilitar producto?'}
+        description={
+          productToToggleStatus?.status === 'ACTIVE'
+            ? `¿Deseas deshabilitar "${productToToggleStatus.name}"? El producto ya no estará disponible para ventas en el Terminal POS.`
+            : `¿Deseas habilitar "${productToToggleStatus?.name}" para que esté disponible en ventas y pedidos?`
+        }
+        confirmText={productToToggleStatus?.status === 'ACTIVE' ? 'Sí, deshabilitar' : 'Sí, habilitar'}
+        variant={productToToggleStatus?.status === 'ACTIVE' ? 'warning' : 'primary'}
+      />
     </div>
   );
 }
-
