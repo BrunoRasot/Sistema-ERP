@@ -36,6 +36,25 @@ export class CashController {
     return this.cashService.getActiveShift(cashRegisterId);
   }
 
+  @Get('shifts/history')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.SUPERVISOR, Role.CAJERO)
+  @ApiOperation({ summary: 'Historial de turnos y cierres de caja con arqueo' })
+  getShiftHistory(
+    @Query('cashRegisterId') cashRegisterId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.cashService.getShiftHistory(
+      cashRegisterId,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
+      startDate,
+      endDate,
+    );
+  }
+
   @Post('shifts/open')
   @Roles(Role.SUPER_ADMIN, Role.ADMIN, Role.CAJERO, Role.VENDEDOR)
   @ApiOperation({ summary: 'Aperturar un nuevo turno de caja con saldo inicial' })

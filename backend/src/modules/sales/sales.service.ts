@@ -61,6 +61,11 @@ export class SalesService {
         if (!customer) {
           throw new NotFoundException(`Cliente con ID ${customerId} no encontrado`);
         }
+        if (customer.status === 'INACTIVE') {
+          throw new BadRequestException(
+            `El cliente "${customer.name}" se encuentra inactivo. Debe reactivarlo antes de generar ventas.`,
+          );
+        }
       }
 
       // 2. Validar obligatoriamente que la caja se encuentre ABIERTA
@@ -116,6 +121,12 @@ export class SalesService {
 
         if (!product) {
           throw new NotFoundException(`Producto con ID ${itemDto.productId} no encontrado`);
+        }
+
+        if (product.status === 'INACTIVE') {
+          throw new BadRequestException(
+            `El producto "${product.name}" se encuentra inactivo y no puede ser vendido.`,
+          );
         }
 
         if (product.stock < itemDto.quantity) {
@@ -680,6 +691,138 @@ export class SalesService {
 
     const buffer = await workbook.xlsx.writeBuffer();
     return Buffer.from(buffer);
+  }
+
+  async cancel(id: string, reason: string, userId?: string) {
+    if (!reason || reason.trim().length < 5) {
+      throw new BadRequestException('El motivo de anulación es obligatorio (mínimo 5 caracteres).');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const sale = await tx.sale.findUnique({
+        where: { id },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+          payments: true,
+          electronicDocument: true,
+        },
+      });
+
+      if (!sale) {
+        throw new NotFoundException(`Venta con ID ${id} no encontrada`);
+      }
+
+      if (sale.paymentStatus === PaymentStatus.ANULADO) {
+        throw new BadRequestException('Esta venta ya se encuentra anulada.');
+      }
+
+      // 1. Revertir stock en Kardex
+      for (const item of sale.items) {
+        const prod = item.product;
+        const previousStock = prod.stock;
+        const newStock = previousStock + item.quantity;
+
+        await tx.product.update({
+          where: { id: prod.id },
+          data: { stock: newStock },
+        });
+
+        await tx.inventoryMovement.create({
+          data: {
+            productId: prod.id,
+            movementType: InventoryMovementType.DEVOLUCION,
+            quantity: item.quantity,
+            previousStock,
+            newStock,
+            unitCost: Number(prod.cost),
+            reason: `Anulación de venta ${sale.saleNumber}: ${reason.trim()}`,
+            referenceType: 'SALE_CANCEL',
+            referenceId: sale.id,
+            userId,
+          },
+        });
+      }
+
+      // 2. Revertir custodia de bidones si aplicó
+      const returnableCount = sale.items
+        .filter((it) => it.product.isReturnable)
+        .reduce((sum, it) => sum + it.quantity, 0);
+
+      if (returnableCount > 0) {
+        const newHolding = Math.max(0, sale.customer.bottlesHolding - returnableCount);
+        await tx.customer.update({
+          where: { id: sale.customerId },
+          data: { bottlesHolding: newHolding },
+        });
+
+        await tx.bottleTransaction.create({
+          data: {
+            customerId: sale.customerId,
+            saleId: sale.id,
+            type: BottleTransactionType.AJUSTE,
+            quantity: returnableCount,
+            balanceAfter: newHolding,
+            notes: `Anulación de venta ${sale.saleNumber}: reversión de ${returnableCount} bidón(es)`,
+            recordedById: userId,
+          },
+        });
+      }
+
+      // 3. Revertir deuda si tenía saldo pendiente
+      const currentDebt = Number(sale.customer.currentDebt);
+      const balanceDue = Number(sale.balanceDue);
+      if (balanceDue > 0) {
+        const newDebt = Math.max(0, currentDebt - balanceDue);
+        await tx.customer.update({
+          where: { id: sale.customerId },
+          data: { currentDebt: newDebt },
+        });
+      }
+
+      // 4. Si el comprobante electrónico estaba emitido, anularlo
+      if (sale.electronicDocument && !sale.electronicDocument.isVoided) {
+        await tx.electronicDocument.update({
+          where: { id: sale.electronicDocument.id },
+          data: {
+            isVoided: true,
+            voidReason: reason.trim(),
+            sunatStatus: 'ANULADO',
+            sunatResponseMessage: `Comprobante anulado por cancelación de venta: ${reason.trim()}`,
+          },
+        });
+      }
+
+      // 5. Actualizar estado de la venta
+      const updatedSale = await tx.sale.update({
+        where: { id },
+        data: {
+          paymentStatus: PaymentStatus.ANULADO,
+          notes: sale.notes
+            ? `${sale.notes} | ANULADA: ${reason.trim()}`
+            : `ANULADA: ${reason.trim()}`,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId,
+          action: 'CANCEL_SALE',
+          entity: 'Sale',
+          entityId: id,
+          newValues: {
+            saleNumber: sale.saleNumber,
+            reason: reason.trim(),
+            previousStatus: sale.paymentStatus,
+          },
+        },
+      });
+
+      return {
+        message: `Venta ${sale.saleNumber} anulada correctamente y stock devuelto a almacén.`,
+        sale: updatedSale,
+      };
+    });
   }
 }
 

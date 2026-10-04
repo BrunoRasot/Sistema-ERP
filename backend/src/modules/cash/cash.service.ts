@@ -272,4 +272,48 @@ export class CashService {
 
     return movement;
   }
+
+  async getShiftHistory(cashRegisterId?: string, page = 1, limit = 20, startDate?: string, endDate?: string) {
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (cashRegisterId) {
+      where.cashRegisterId = cashRegisterId;
+    }
+    if (startDate || endDate) {
+      where.openedAt = {};
+      if (startDate) where.openedAt.gte = new Date(startDate);
+      if (endDate) where.openedAt.lte = new Date(endDate);
+    }
+
+    const [total, items] = await Promise.all([
+      this.prisma.cashShift.count({ where }),
+      this.prisma.cashShift.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { openedAt: 'desc' },
+        include: {
+          cashRegister: true,
+          openedBy: { select: { firstName: true, lastName: true, email: true } },
+          closedBy: { select: { firstName: true, lastName: true, email: true } },
+          _count: {
+            select: {
+              movements: true,
+              payments: true,
+            },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      data: items,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }

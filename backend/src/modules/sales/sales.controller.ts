@@ -71,5 +71,17 @@ export class SalesController {
   findOne(@Param('id') id: string) {
     return this.salesService.findOne(id);
   }
+
+  @Post(':id/cancel')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
+  @ApiOperation({ summary: 'Anular una venta, devolver stock a Kardex, revertir envases y deudas' })
+  @ApiResponse({ status: 200, description: 'Venta anulada correctamente' })
+  cancel(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.salesService.cancel(id, reason, userId);
+  }
 }
 

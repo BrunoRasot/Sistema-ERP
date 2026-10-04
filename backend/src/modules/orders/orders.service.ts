@@ -42,6 +42,9 @@ export class OrdersService {
       if (!customer) {
         throw new NotFoundException(`Cliente con ID ${createDto.customerId} no encontrado`);
       }
+      if (customer.status === 'INACTIVE') {
+        throw new BadRequestException(`El cliente ${customer.name} está inactivo y no puede registrar pedidos`);
+      }
 
       if (createDto.driverId) {
         const driver = await tx.user.findUnique({
@@ -91,6 +94,9 @@ export class OrdersService {
         });
         if (!product) {
           throw new NotFoundException(`Producto con ID ${itemDto.productId} no encontrado`);
+        }
+        if (product.status === 'INACTIVE') {
+          throw new BadRequestException(`El producto ${product.name} está inactivo`);
         }
 
         const unitPrice =
@@ -357,6 +363,18 @@ export class OrdersService {
     });
     if (!order) {
       throw new NotFoundException(`Pedido con ID ${id} no encontrado`);
+    }
+
+    if (order.status === OrderStatus.ENTREGADO) {
+      throw new BadRequestException('Un pedido en estado ENTREGADO no puede cambiar de estado');
+    }
+
+    if (order.status === OrderStatus.CANCELADO) {
+      throw new BadRequestException('Un pedido en estado CANCELADO no puede ser reactivado');
+    }
+
+    if (updateDto.status === OrderStatus.ENTREGADO) {
+      throw new BadRequestException('Para marcar un pedido como ENTREGADO y liquidar inventario/pago, utilice la acción de entrega');
     }
 
     const data: Prisma.OrderUpdateInput = {

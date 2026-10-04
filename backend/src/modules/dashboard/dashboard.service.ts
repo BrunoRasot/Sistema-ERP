@@ -27,6 +27,7 @@ export class DashboardService {
         _count: { id: true },
         where: {
           createdAt: { gte: startOfToday },
+          paymentStatus: { not: PaymentStatus.ANULADO },
         },
       }),
 
@@ -99,6 +100,7 @@ export class DashboardService {
     const weekSales = await this.prisma.sale.findMany({
       where: {
         createdAt: { gte: sevenDaysAgo },
+        paymentStatus: { not: PaymentStatus.ANULADO },
       },
       select: {
         total: true,

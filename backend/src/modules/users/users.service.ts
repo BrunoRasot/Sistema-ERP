@@ -180,8 +180,21 @@ export class UsersService {
   }
 
   async toggleStatus(id: string, currentUserId?: string) {
+    if (currentUserId && currentUserId === id) {
+      throw new BadRequestException('No puede desactivar su propia cuenta de usuario');
+    }
+
     const user = await this.findOne(id);
     const newStatus = user.status === EntityStatus.ACTIVE ? EntityStatus.INACTIVE : EntityStatus.ACTIVE;
+
+    if (user.role === Role.SUPER_ADMIN && newStatus === EntityStatus.INACTIVE) {
+      const activeSuperAdmins = await this.prisma.user.count({
+        where: { role: Role.SUPER_ADMIN, status: EntityStatus.ACTIVE, deletedAt: null },
+      });
+      if (activeSuperAdmins <= 1) {
+        throw new BadRequestException('No se puede desactivar el único SUPER_ADMIN activo del sistema');
+      }
+    }
 
     const updated = await this.prisma.user.update({
       where: { id },
@@ -212,7 +225,20 @@ export class UsersService {
   }
 
   async remove(id: string, currentUserId?: string) {
-    await this.findOne(id);
+    if (currentUserId && currentUserId === id) {
+      throw new BadRequestException('No puede eliminar su propia cuenta de usuario');
+    }
+
+    const user = await this.findOne(id);
+
+    if (user.role === Role.SUPER_ADMIN) {
+      const activeSuperAdmins = await this.prisma.user.count({
+        where: { role: Role.SUPER_ADMIN, deletedAt: null },
+      });
+      if (activeSuperAdmins <= 1) {
+        throw new BadRequestException('No se puede eliminar el único SUPER_ADMIN del sistema');
+      }
+    }
 
     await this.prisma.user.update({
       where: { id },
