@@ -6,7 +6,6 @@ import { Sidebar } from '@/components/navigation/sidebar';
 import { MobileNav } from '@/components/navigation/mobile-nav';
 import { BottomSheetMore } from '@/components/navigation/bottom-sheet-more';
 import { ToastProvider } from '@/components/ui/toast';
-import { DemoBanner } from '@/components/demo/demo-banner';
 import { cn } from '@/lib/utils';
 
 export default function DashboardLayout({
@@ -20,12 +19,10 @@ export default function DashboardLayout({
   return (
     <ToastProvider>
       <div className="min-h-screen bg-[#fafafa] flex flex-col antialiased overflow-x-hidden lg:h-screen lg:overflow-hidden">
-        <DemoBanner />
-        <div className="flex-1 flex min-h-0 min-w-0 w-full overflow-hidden">
-          <Sidebar
-            collapsed={collapsed}
-            onToggleCollapse={() => setCollapsed(!collapsed)}
-          />
+      <Sidebar
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed(!collapsed)}
+      />
 
       <div
         className={cn(
@@ -62,7 +59,6 @@ export default function DashboardLayout({
           onClose={() => setIsMoreOpen(false)}
         />
       </div>
-        </div>
       </div>
     </ToastProvider>
   );

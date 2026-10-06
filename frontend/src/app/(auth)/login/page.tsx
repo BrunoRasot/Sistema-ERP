@@ -162,61 +162,8 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Acceso Rápido para Portafolio / Modo Demostración */}
-          <div className="mt-6 pt-5 border-t border-slate-100 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                Acceso Rápido Demo (Portafolio)
-              </span>
-              <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200">
-                1-Clic
-              </span>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@demo.local');
-                  setPassword('Demo123!');
-                  setErrorMessage(null);
-                }}
-                className="p-2 rounded-xl border border-slate-200 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-center transition active:scale-95"
-              >
-                <span className="block text-xs font-bold text-slate-800">👑 Admin</span>
-                <span className="text-[10px] text-slate-500">Acceso Total</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('vendedor@demo.local');
-                  setPassword('Demo123!');
-                  setErrorMessage(null);
-                }}
-                className="p-2 rounded-xl border border-slate-200 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-center transition active:scale-95"
-              >
-                <span className="block text-xs font-bold text-slate-800">💼 Ventas</span>
-                <span className="text-[10px] text-slate-500">POS & Ventas</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('repartidor@demo.local');
-                  setPassword('Demo123!');
-                  setErrorMessage(null);
-                }}
-                className="p-2 rounded-xl border border-slate-200 hover:border-slate-400 bg-slate-50 hover:bg-slate-100 text-center transition active:scale-95"
-              >
-                <span className="block text-xs font-bold text-slate-800">🚚 Reparto</span>
-                <span className="text-[10px] text-slate-500">Logística</span>
-              </button>
-            </div>
-          </div>
-
           {/* Insignia de Seguridad */}
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-slate-400">
+          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-1.5 text-slate-400">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span className="text-[11px] font-medium tracking-wide">
               Sesión protegida con cifrado SSL / TLS de 256 bits
