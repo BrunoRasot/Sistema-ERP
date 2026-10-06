@@ -9,6 +9,8 @@
     "test:frontend": "pnpm --dir frontend test",
     "test:cov": "pnpm --dir backend test:all:cov && pnpm --dir frontend test:cov",
     "test:visual": "pnpm --dir frontend test:visual",
+    "seed:demo": "pnpm --dir backend seed:demo",
+    "demo:reset": "pnpm --dir backend demo:reset",
     "prepare": "husky"
   },
   "devDependencies": {

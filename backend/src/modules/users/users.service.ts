@@ -3,12 +3,20 @@ import {
   ConflictException,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
 import { Role, EntityStatus } from '@prisma/client';
+
+const PROTECTED_DEMO_EMAILS = [
+  'admin@demo.local',
+  'vendedor@demo.local',
+  'cajero@demo.local',
+  'repartidor@demo.local',
+];
 
 @Injectable()
 export class UsersService {
@@ -125,6 +133,15 @@ export class UsersService {
   async update(id: string, dto: UpdateUserDto, currentUserId?: string) {
     const user = await this.findOne(id);
 
+    const isDemoMode = process.env.APP_ENV === 'demo' || process.env.DEMO_MODE === 'true';
+    if (isDemoMode && PROTECTED_DEMO_EMAILS.includes(user.email)) {
+      if (dto.password || (dto.status && dto.status === EntityStatus.INACTIVE)) {
+        throw new ForbiddenException(
+          'Modo Demostración: La contraseña y estado de las cuentas demo predeterminadas están protegidos.',
+        );
+      }
+    }
+
     const updateData: any = {};
 
     if (dto.email && dto.email.toLowerCase().trim() !== user.email) {
@@ -185,6 +202,12 @@ export class UsersService {
     }
 
     const user = await this.findOne(id);
+    const isDemoMode = process.env.APP_ENV === 'demo' || process.env.DEMO_MODE === 'true';
+    if (isDemoMode && PROTECTED_DEMO_EMAILS.includes(user.email)) {
+      throw new ForbiddenException(
+        'Modo Demostración: No se puede desactivar una cuenta demo predeterminada para el portafolio.',
+      );
+    }
     const newStatus = user.status === EntityStatus.ACTIVE ? EntityStatus.INACTIVE : EntityStatus.ACTIVE;
 
     if (user.role === Role.SUPER_ADMIN && newStatus === EntityStatus.INACTIVE) {
@@ -230,6 +253,12 @@ export class UsersService {
     }
 
     const user = await this.findOne(id);
+    const isDemoMode = process.env.APP_ENV === 'demo' || process.env.DEMO_MODE === 'true';
+    if (isDemoMode && PROTECTED_DEMO_EMAILS.includes(user.email)) {
+      throw new ForbiddenException(
+        'Modo Demostración: No se puede eliminar una cuenta demo predeterminada para el portafolio.',
+      );
+    }
 
     if (user.role === Role.SUPER_ADMIN) {
       const activeSuperAdmins = await this.prisma.user.count({
