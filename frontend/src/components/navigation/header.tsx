@@ -68,7 +68,16 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex items-center gap-2.5 shrink-0">
+        <div 
+          title="Este es un entorno de demostración. Todos los datos mostrados son ficticios y las operaciones realizadas no representan transacciones reales."
+          className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold select-none"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+          <span className="font-bold text-amber-900">MODO DEMO</span>
+          <span className="text-amber-700 font-normal truncate max-w-[280px]">· Datos ficticios de prueba</span>
+        </div>
+
         <Link
           href="/sales"
           title={isShiftOpen ? 'Caja abierta - Clic para ver arqueo' : 'Caja cerrada - Clic para abrir turno'}

@@ -162,8 +162,36 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Acceso DEMO para Portafolio */}
+          <div className="mt-6 pt-5 border-t border-slate-100 space-y-2">
+            <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl flex items-start gap-2.5">
+              <div className="p-1 rounded-lg bg-blue-100 text-blue-700 mt-0.5 shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="text-[11px] text-blue-900 leading-snug flex-1">
+                <div className="flex items-center justify-between font-bold text-blue-950 mb-0.5">
+                  <span>Acceso al Entorno DEMO</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEmail('demo@demo.local');
+                      setPassword('Demo1234!');
+                      setErrorMessage(null);
+                    }}
+                    className="text-[10px] bg-blue-600 hover:bg-blue-700 text-white font-bold px-2.5 py-0.5 rounded-lg transition active:scale-95 shadow-2xs"
+                  >
+                    1-Clic Autocompletar
+                  </button>
+                </div>
+                <p className="text-blue-800 font-mono text-[10px] mt-1">
+                  demo@demo.local &nbsp;•&nbsp; Demo1234!
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Insignia de Seguridad */}
-          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-1.5 text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-slate-400">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
             <span className="text-[11px] font-medium tracking-wide">
               Sesión protegida con cifrado SSL / TLS de 256 bits
