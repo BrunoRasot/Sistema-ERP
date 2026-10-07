@@ -59,8 +59,36 @@ export default function LoginPage() {
 
       <div className="relative w-full max-w-[440px]">
         {/* Contenedor principal de la tarjeta de inicio de sesión */}
-        <div className="bg-white/[0.98] backdrop-blur-2xl p-8 sm:p-10 rounded-[28px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] border border-slate-100">
+        <div className="relative bg-white/[0.98] backdrop-blur-2xl p-8 sm:p-10 rounded-[28px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.08)] border border-slate-100 overflow-hidden">
           
+          {/* Overlay Animado de Carga cuando se está ingresando al sistema */}
+          {isLoading && (
+            <div className="absolute inset-0 z-30 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-300">
+              <div className="relative mb-6">
+                {/* Anillo de pulso exterior */}
+                <div className="w-20 h-20 rounded-full border-4 border-slate-100 border-t-[#0A1A3B] border-r-blue-600 animate-spin" />
+                {/* Logo interior centrado */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-[#0A1A3B] text-white flex items-center justify-center font-serif font-black text-lg shadow-md animate-pulse">
+                    A
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="text-base font-bold text-slate-900 tracking-tight mb-1">
+                Iniciando Sesión...
+              </h3>
+              <p className="text-xs font-medium text-slate-500 max-w-[250px] leading-relaxed">
+                Verificando credenciales y preparando el entorno de ARCA ERP
+              </p>
+
+              {/* Barra de progreso animada */}
+              <div className="w-48 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-6 relative">
+                <div className="w-1/2 h-full bg-gradient-to-r from-blue-600 to-[#0A1A3B] rounded-full animate-progress-indeterminate" />
+              </div>
+            </div>
+          )}
+
           {/* Encabezado e identidad de marca ARCA */}
           <div className="text-center flex flex-col items-center mb-8">
             <div className="py-2 px-4 mb-3 flex items-center justify-center">
