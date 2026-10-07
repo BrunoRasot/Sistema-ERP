@@ -85,8 +85,8 @@ export default function BillingPage() {
   return (
     <div className="space-y-4 lg:space-y-3 lg:h-full lg:flex lg:flex-col lg:min-h-0">
       <PageHeader
-        title="Facturación Electrónica (SUNAT)"
-        description="Emisión de Boletas (B001), Facturas (F001), estándar UBL 2.1 y formato térmico 80mm"
+        title="Comprobantes de Venta"
+        description="Registro de tickets emitidos, comprobantes internos y exportación para facturación externa"
         actions={
           <div className="flex bg-slate-100 p-1 rounded-2xl text-xs font-bold border border-slate-200/80">
             <button
@@ -109,43 +109,43 @@ export default function BillingPage() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>Por Facturar ({uninvoicedSales.length})</span>
+              <span>Pendientes ({uninvoicedSales.length})</span>
             </button>
           </div>
         }
       />
 
-      {/* Tarjetas de Métricas SUNAT */}
+      {/* Tarjetas de Métricas */}
       <div className="shrink-0 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         <StatCard
-          label="Total Emitidos"
+          label="Total Comprobantes"
           value={totalIssued}
-          subtitle="Comprobantes procesados"
+          subtitle="Tickets y ventas emitidas"
           icon={<Receipt className="w-5 h-5" />}
           iconColor="bg-blue-50 text-blue-600"
         />
 
         <StatCard
-          label="Aceptados SUNAT"
-          value={aceptadosSunatCount}
-          subtitle="Con constancia CDR conforme"
-          icon={<CheckCircle2 className="w-5 h-5" />}
+          label="Monto Total"
+          value={formatCurrency(totalBilledAmount)}
+          subtitle="Ingresos por comprobantes"
+          icon={<DollarSign className="w-5 h-5" />}
           iconColor="bg-emerald-50 text-emerald-600"
         />
 
         <StatCard
-          label="Facturas / Boletas"
+          label="Desglose de Series"
           value={`${facturasCount} F / ${boletasCount} B`}
-          subtitle="Desglose por serie oficial"
+          subtitle="Comprobantes registrados"
           icon={<Building2 className="w-5 h-5" />}
           iconColor="bg-purple-50 text-purple-600"
         />
 
         <StatCard
-          label="Monto Facturado"
-          value={formatCurrency(totalBilledAmount)}
-          subtitle="Importe total consolidado"
-          icon={<DollarSign className="w-5 h-5" />}
+          label="Estado de Registro"
+          value={`${aceptadosSunatCount} Registrados`}
+          subtitle="Control interno de ventas"
+          icon={<CheckCircle2 className="w-5 h-5" />}
           iconColor="bg-emerald-50 text-emerald-600"
         />
       </div>

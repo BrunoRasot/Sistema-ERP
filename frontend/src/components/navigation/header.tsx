@@ -16,7 +16,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/products': { title: 'Catálogo de Productos', subtitle: 'Precios, stock crítico y control de inventario' },
   '/inventory': { title: 'Inventario y Kardex', subtitle: 'Movimientos físicos, producción y mermas' },
   '/payments': { title: 'Cuentas por Cobrar & Pagos', subtitle: 'Cobranza de créditos y registro de abonos' },
-  '/billing': { title: 'Facturación Electrónica (SUNAT)', subtitle: 'Boletas B001, Facturas F001 y tickets' },
+  '/billing': { title: 'Comprobantes de Venta', subtitle: 'Registro de tickets emitidos y control de ventas' },
   '/imports': { title: 'Importación de Datos Excel', subtitle: 'Carga masiva oficial de clientes y ventas' },
   '/settings': { title: 'Configuración del Sistema', subtitle: 'Parámetros, sucursales y permisos de usuario' },
 };

@@ -91,7 +91,7 @@ export function Sidebar({
   const managementItems = [
     { name: 'Productos y Catálogo', href: '/products', icon: Package },
     { name: 'Inventario (Kardex)', href: '/inventory', icon: Boxes },
-    { name: 'Facturación SUNAT', href: '/billing', icon: Receipt },
+    { name: 'Comprobantes de Venta', href: '/billing', icon: Receipt },
     { name: 'Importar Excel', href: '/imports', icon: FileSpreadsheet },
     { name: 'Configuración', href: '/settings', icon: Settings },
   ];

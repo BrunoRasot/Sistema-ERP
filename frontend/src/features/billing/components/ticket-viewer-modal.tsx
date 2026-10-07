@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Printer, QrCode, CheckCircle2, Droplets } from 'lucide-react';
+import { Printer, QrCode, CheckCircle2 } from 'lucide-react';
 import { TicketData } from '../types/billing';
 import { billingService } from '../services/billing-service';
 import { formatCurrency, formatDate } from '@/lib/utils';
@@ -80,22 +80,20 @@ export function TicketViewerModal({
         >
           {/* Header Empresa */}
           <div className="text-center space-y-1 border-b border-dashed border-slate-300 pb-2">
-            <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-600 text-white mb-1">
-              <Droplets className="w-4 h-4" />
-            </div>
-            <h4 className="font-black text-sm tracking-tight">
-              {ticket.company.nombreComercial || ticket.company.razonSocial}
+            <h4 className="font-black text-sm tracking-tight text-slate-900">
+              ARCA CORPORATION
             </h4>
-            <p className="text-[10px] text-slate-500">{ticket.company.address}</p>
+            <p className="text-[10px] font-semibold text-slate-600">SISTEMA INTEGRAL DE GESTIÓN & DISTRIBUCIÓN</p>
+            <p className="text-[10px] text-slate-500">{ticket.company.address || 'Planta de Envasado & Distribución Ica'}</p>
             <p className="text-[10px] font-bold">RUC: {ticket.company.ruc}</p>
           </div>
 
           {/* Datos del Comprobante */}
           <div className="border-b border-dashed border-slate-300 pb-2 space-y-0.5 text-[11px]">
             <p className="font-bold text-center text-xs text-slate-900">
-              {ticket.documentTypeLabel} ELECTRÓNICA
+              COMPROBANTE DE VENTA
             </p>
-            <p className="font-black text-center text-sm tracking-wider text-blue-700">
+            <p className="font-black text-center text-sm tracking-wider text-[#0A1A3B]">
               {ticket.documentNumber}
             </p>
             <div className="flex justify-between pt-1 text-[10px] text-slate-500">

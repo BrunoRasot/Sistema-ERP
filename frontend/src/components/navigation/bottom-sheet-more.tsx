@@ -81,8 +81,8 @@ export function BottomSheetMore({ isOpen, onClose }: BottomSheetMoreProps) {
       color: 'text-blue-600 bg-blue-50 border-blue-200/60',
     },
     {
-      name: 'Facturación SUNAT',
-      description: 'Boletas, facturas y comprobantes',
+      name: 'Comprobantes de Venta',
+      description: 'Tickets emitidos y comprobantes',
       href: '/billing',
       icon: Receipt,
       color: 'text-emerald-600 bg-emerald-50 border-emerald-200/60',
