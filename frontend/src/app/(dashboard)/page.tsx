@@ -138,7 +138,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-5 lg:overflow-y-auto lg:h-full lg:pr-1">
+    <div className="space-y-4 sm:space-y-5 lg:overflow-y-auto lg:h-full lg:pr-2 scrollbar-thin">
       <PageHeader
         title="Panel de Control Operativo"
         description="Métricas clave del día, flujo de ventas y distribución en Ica"
@@ -353,11 +353,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Listas Recientes */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Listas Recientes con Scroll Interno */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 pb-4">
         {/* Pedidos Recientes */}
-        <div className="card overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="card overflow-hidden flex flex-col">
+          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Pedidos Recientes</h2>
               <p className="text-[11px] text-slate-400">Últimos despachos y repartos en Ica</p>
@@ -371,7 +371,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto overflow-x-hidden scrollbar-thin">
             {recentOrders.length === 0 ? (
               <EmptyState
                 icon={<Truck className="w-6 h-6" />}
@@ -380,7 +380,7 @@ export default function DashboardPage() {
               />
             ) : (
               recentOrders.map((order: any) => (
-                <div key={order.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                <div key={order.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-xs text-slate-900">
@@ -407,8 +407,8 @@ export default function DashboardPage() {
         </div>
 
         {/* Ventas Recientes */}
-        <div className="card overflow-hidden">
-          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div className="card overflow-hidden flex flex-col">
+          <div className="p-3.5 sm:p-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
             <div>
               <h2 className="text-sm font-bold text-slate-900">Ventas Recientes</h2>
               <p className="text-[11px] text-slate-400">Últimos cobros de agua purificada</p>
@@ -422,7 +422,7 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto overflow-x-hidden scrollbar-thin">
             {recentSales.length === 0 ? (
               <EmptyState
                 icon={<DollarSign className="w-6 h-6" />}
@@ -431,7 +431,7 @@ export default function DashboardPage() {
               />
             ) : (
               recentSales.map((sale: any) => (
-                <div key={sale.id} className="p-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
+                <div key={sale.id} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-mono font-bold text-xs text-slate-900">
