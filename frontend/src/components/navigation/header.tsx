@@ -57,13 +57,12 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
           </div>
         </div>
 
-        <div className="hidden lg:block min-w-0">
-          <h1 className="font-bold text-sm text-slate-900 tracking-tight truncate leading-tight">
+        <div className="hidden lg:flex items-center gap-2 min-w-0">
+          <span className="text-xs font-semibold text-slate-400">ARCA ERP</span>
+          <span className="text-slate-300 text-xs">/</span>
+          <span className="text-xs font-bold text-slate-800 tracking-tight truncate">
             {pageInfo.title}
-          </h1>
-          <p className="text-[11px] text-slate-400 truncate leading-tight">
-            {pageInfo.subtitle}
-          </p>
+          </span>
         </div>
       </div>
 
