@@ -127,7 +127,7 @@ export function Sidebar({
             </div>
           </div>
 
-          <Link href="/" onClick={onMobileClose} className="block py-1 focus:outline-none group">
+          <Link href="/" onClick={onMobileClose} className="flex justify-center items-center py-1.5 focus:outline-none group">
             <img
               src="/logo.png"
               alt="ARCA Corporation"
