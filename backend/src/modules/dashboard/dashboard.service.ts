@@ -8,9 +8,19 @@ export class DashboardService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  private getStartOfTodayPeru(): Date {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Lima',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const peruDateStr = formatter.format(new Date()); // YYYY-MM-DD
+    return new Date(`${peruDateStr}T00:00:00.000-05:00`);
+  }
+
   async getStats() {
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = this.getStartOfTodayPeru();
 
     const [
       todaySalesAgg,

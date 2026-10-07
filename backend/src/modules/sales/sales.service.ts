@@ -205,7 +205,7 @@ export class SalesService {
           balanceDue,
           dueDate: createDto.dueDate ? new Date(createDto.dueDate) : null,
           zone: createDto.zone?.trim() || customer.zone || 'Central',
-          district: createDto.district?.trim() || customer.district || 'Lima',
+          district: createDto.district?.trim() || customer.district || 'Ica',
           subchannel:
             createDto.subchannel?.trim() ||
             customer.subchannel ||
@@ -217,7 +217,6 @@ export class SalesService {
               : 'NUEVO_CON_ENVASE'),
           notes: createDto.notes?.trim(),
           items: {
-
             create: preparedItems.map((p) => ({
               productId: p.productId,
               quantity: p.quantity,
@@ -247,15 +246,26 @@ export class SalesService {
         });
       }
 
-      // 8. Efectos en Inventario (Descontar stock y registrar en Kardex)
+      // 8. Efectos en Inventario (Descontar stock atómicamente y registrar en Kardex)
       for (const item of preparedItems) {
         const prevStock = item.product.stock;
         const nextStock = prevStock - item.quantity;
 
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { stock: nextStock },
+        const updateResult = await tx.product.updateMany({
+          where: {
+            id: item.productId,
+            stock: { gte: item.quantity },
+          },
+          data: {
+            stock: { decrement: item.quantity },
+          },
         });
+
+        if (updateResult.count === 0) {
+          throw new BadRequestException(
+            `Conflicto de inventario: Stock insuficiente para "${item.product.name}" al procesar la venta.`,
+          );
+        }
 
         await tx.inventoryMovement.create({
           data: {
