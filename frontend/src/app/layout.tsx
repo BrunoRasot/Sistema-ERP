@@ -3,8 +3,8 @@ import './globals.css';
 import { QueryProvider } from '@/providers/query-provider';
 
 export const metadata: Metadata = {
-  title: 'Vivelite — Sistema Integral de Distribución de Agua',
-  description: 'Plataforma empresarial de gestión integral para distribuidora de agua de mesa',
+  title: 'ARCA Corporation — Sistema Integral de Distribución',
+  description: 'Plataforma empresarial de gestión integral y distribución',
   manifest: '/manifest.json',
 };
 

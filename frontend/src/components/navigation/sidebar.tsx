@@ -22,7 +22,6 @@ import {
   PanelLeftOpen,
   PlusCircle,
   X,
-  Droplets,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -120,18 +119,12 @@ export function Sidebar({
       <div className="px-5 py-2.5 flex items-center justify-between">
         {!collapsed ? (
           <>
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-white shadow-sm shrink-0">
-                <Droplets className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <span className="text-sm font-bold text-slate-900 tracking-tight block truncate">
-                  Vivelite
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium block truncate">
-                  Distribuidora Ica
-                </span>
-              </div>
+            <div className="flex items-center min-w-0 pr-2">
+              <img
+                src="/logo.jpg"
+                alt="ARCA Corporation"
+                className="h-8 w-auto object-contain max-w-[140px]"
+              />
             </div>
             {onToggleCollapse && (
               <button

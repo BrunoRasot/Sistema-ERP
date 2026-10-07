@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Droplets } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { cashService } from '@/features/cash/services/cash-service';
 
@@ -29,7 +28,7 @@ interface HeaderProps {
 
 export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
   const pathname = usePathname();
-  const pageInfo = PAGE_TITLES[pathname] || { title: 'Vivelite', subtitle: 'Distribución Ica' };
+  const pageInfo = PAGE_TITLES[pathname] || { title: 'ARCA Corporation', subtitle: 'Distribución Ica' };
 
   const { data: activeShift } = useQuery({
     queryKey: ['cash-active-shift'],
@@ -45,15 +44,15 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
       <div className="flex items-center gap-3 min-w-0">
 
         <div className="lg:hidden flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-xs shrink-0">
-            <Droplets className="w-4 h-4" />
+          <div className="h-8 px-1.5 rounded-lg bg-white border border-slate-200 flex items-center justify-center shadow-2xs shrink-0">
+            <img src="/logo.jpg" alt="ARCA Corporation" className="h-5 w-auto object-contain" />
           </div>
           <div className="min-w-0">
             <span className="font-extrabold text-sm text-slate-900 tracking-tight block truncate leading-tight">
               {pageInfo.title}
             </span>
             <span className="text-[10px] text-slate-400 font-semibold block truncate leading-tight">
-              Vivelite · Ica
+              ARCA Corporation
             </span>
           </div>
         </div>

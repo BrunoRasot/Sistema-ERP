@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Droplets, Lock, Mail, Loader2, AlertCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { Lock, Mail, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { apiClient, ApiError } from '@/lib/api/client';
 
 export default function LoginPage() {
@@ -60,18 +60,17 @@ export default function LoginPage() {
         {/* Contenedor principal de la tarjeta de inicio de sesión */}
         <div className="bg-white/95 backdrop-blur-xl p-8 sm:p-10 rounded-3xl shadow-2xl shadow-slate-950/50 border border-slate-200/80">
           {/* Encabezado e identidad de marca */}
-          <div className="text-center space-y-3 mb-8">
-            <div className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 via-blue-500 to-cyan-400 items-center justify-center text-white shadow-xl shadow-blue-500/25 ring-4 ring-blue-50">
-              <Droplets className="w-9 h-9" />
+          <div className="text-center flex flex-col items-center mb-8">
+            <div className="p-3 bg-white rounded-2xl border border-slate-100 shadow-sm mb-3 flex items-center justify-center">
+              <img
+                src="/logo.jpg"
+                alt="ARCA Corporation"
+                className="h-12 sm:h-14 w-auto object-contain max-w-[220px]"
+              />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                Vivelite ERP
-              </h1>
-              <p className="text-xs font-medium text-slate-500 mt-1">
-                Sistema Integral de Gestión y Distribución
-              </p>
-            </div>
+            <p className="text-xs font-medium text-slate-500">
+              Sistema Integral de Gestión y Distribución
+            </p>
           </div>
 
           {/* Alerta de Error */}
@@ -161,40 +160,11 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Credenciales de Demostración / Portafolio */}
-          <div className="mt-6 pt-5 border-t border-slate-100">
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-2">
-              <div className="text-[11px] text-slate-600 leading-tight">
-                <span className="font-bold text-slate-800 block">Acceso de Prueba / Demo:</span>
-                <span className="text-slate-500 font-mono text-[10px]">admin@vivelite.pe • Admin123!</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('admin@vivelite.pe');
-                  setPassword('Admin123!');
-                  setErrorMessage(null);
-                }}
-                className="px-3 py-1.5 text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-2xs transition active:scale-95"
-              >
-                Autocompletar
-              </button>
-            </div>
-          </div>
-
-          {/* Insignia de Seguridad */}
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-slate-400">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-            <span className="text-[11px] font-medium tracking-wide">
-              Sesión protegida con cifrado SSL / TLS de 256 bits
-            </span>
-          </div>
         </div>
 
         {/* Pie de página empresarial */}
         <p className="mt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} Vivelite. Todos los derechos reservados.
+          © {new Date().getFullYear()} ARCA Corporation. Todos los derechos reservados.
         </p>
       </div>
     </div>

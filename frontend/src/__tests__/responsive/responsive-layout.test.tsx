@@ -47,7 +47,7 @@ describe('Responsive Layout Tests: Mobile Bottom Nav vs Desktop Sidebar', () => 
     it('should render brand logo, dashboard link, and management options', () => {
       render(<Sidebar collapsed={false} onToggleCollapse={vi.fn()} />);
 
-      expect(screen.getByText(/Vivelite/i)).toBeInTheDocument();
+      expect(screen.getByAltText(/ARCA Corporation/i)).toBeInTheDocument();
       expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
       expect(screen.getByText(/Nueva Venta/i)).toBeInTheDocument();
     });
