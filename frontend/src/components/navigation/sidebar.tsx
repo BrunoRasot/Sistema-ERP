@@ -99,8 +99,8 @@ export function Sidebar({
   const content = (
     <div className="flex flex-col h-full bg-white text-slate-700 select-none overflow-x-hidden">
       {!collapsed ? (
-        <div className="pt-3.5 pb-2 px-5 border-b border-slate-100/80">
-          <div className="flex items-center justify-between mb-2.5">
+        <div className="pt-3.5 pb-3 px-5 border-b border-slate-100/80">
+          <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 shrink-0">
               <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] inline-block shadow-2xs" />
               <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] inline-block shadow-2xs" />
@@ -127,30 +127,25 @@ export function Sidebar({
             </div>
           </div>
 
-          <Link href="/" onClick={onMobileClose} className="flex justify-center items-center py-1.5 focus:outline-none group">
+          <Link href="/" onClick={onMobileClose} className="flex justify-center items-center py-2 focus:outline-none group">
             <img
               src="/logo.png"
               alt="ARCA Corporation"
-              className="h-9 w-auto object-contain max-w-[170px] transition-transform group-hover:scale-[1.02]"
+              className="h-12 sm:h-14 w-auto object-contain max-w-[210px] transition-transform group-hover:scale-[1.03]"
             />
           </Link>
         </div>
       ) : (
-        <div className="pt-4 pb-3 px-2 flex flex-col items-center gap-3 border-b border-slate-100/80">
+        <div className="py-3 px-2 flex justify-center items-center border-b border-slate-100/80">
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
               title="Expandir menú"
-              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             >
               <PanelLeftOpen className="w-4 h-4" />
             </button>
           )}
-          <Link href="/" title="ARCA Corporation" className="p-1 block">
-            <div className="w-9 h-9 rounded-xl bg-[#0A1A3B] text-white flex items-center justify-center font-serif font-black text-base shadow-sm">
-              A
-            </div>
-          </Link>
         </div>
       )}
 
