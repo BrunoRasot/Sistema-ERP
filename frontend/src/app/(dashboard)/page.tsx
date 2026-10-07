@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 lg:overflow-y-auto lg:h-full lg:pr-1">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-6 lg:pr-2 scrollbar-thin">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="space-y-2">
             <div className="h-6 w-48 bg-slate-200/80 rounded animate-pulse" />
@@ -138,7 +138,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-5 lg:overflow-y-auto lg:h-full lg:pr-2 scrollbar-thin">
+    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden space-y-4 sm:space-y-5 lg:pr-2 scrollbar-thin">
       <PageHeader
         title="Panel de Control Operativo"
         description="Métricas clave del día, flujo de ventas y distribución en Ica"

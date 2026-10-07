@@ -39,7 +39,7 @@ export default function DashboardLayout({
           className={cn(
             'flex-1 w-full max-w-full min-w-0 transition-all duration-200',
             'max-w-2xl mx-auto px-3.5 sm:px-5 py-4 pb-24', // Móvil (< lg)
-            'lg:max-w-none lg:mx-0 lg:px-6 xl:px-8 lg:py-4 lg:pb-4 lg:flex lg:flex-col lg:h-[calc(100vh-3.5rem)] lg:overflow-hidden', // Desktop (>= lg)
+            'lg:max-w-none lg:mx-0 lg:px-6 xl:px-8 lg:py-3.5 lg:flex lg:flex-col lg:flex-1 lg:min-h-0 lg:overflow-hidden', // Desktop (>= lg)
           )}
         >
           {children}
