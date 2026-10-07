@@ -98,58 +98,61 @@ export function Sidebar({
 
   const content = (
     <div className="flex flex-col h-full bg-white text-slate-700 select-none overflow-x-hidden">
-      {!collapsed && (
-        <div className="pt-3.5 pb-2 px-5 flex items-center justify-between transition-all">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-3 h-3 rounded-full bg-[#EF4444] inline-block shadow-2xs" />
-            <span className="w-3 h-3 rounded-full bg-[#F59E0B] inline-block shadow-2xs" />
-            <span className="w-3 h-3 rounded-full bg-[#10B981] inline-block shadow-2xs" />
+      {!collapsed ? (
+        <div className="pt-3.5 pb-2 px-5 border-b border-slate-100/80">
+          <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] inline-block shadow-2xs" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B] inline-block shadow-2xs" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981] inline-block shadow-2xs" />
+            </div>
+            <div className="flex items-center gap-1">
+              {mobileOpen && (
+                <button
+                  onClick={onMobileClose}
+                  className="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+              {onToggleCollapse && (
+                <button
+                  onClick={onToggleCollapse}
+                  title="Colapsar menú"
+                  className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
-          {mobileOpen && (
+
+          <Link href="/" onClick={onMobileClose} className="block py-1 focus:outline-none group">
+            <img
+              src="/logo.png"
+              alt="ARCA Corporation"
+              className="h-9 w-auto object-contain max-w-[170px] transition-transform group-hover:scale-[1.02]"
+            />
+          </Link>
+        </div>
+      ) : (
+        <div className="pt-4 pb-3 px-2 flex flex-col items-center gap-3 border-b border-slate-100/80">
+          {onToggleCollapse && (
             <button
-              onClick={onMobileClose}
-              className="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              onClick={onToggleCollapse}
+              title="Expandir menú"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
             >
-              <X className="w-4 h-4" />
+              <PanelLeftOpen className="w-4 h-4" />
             </button>
           )}
+          <Link href="/" title="ARCA Corporation" className="p-1 block">
+            <div className="w-9 h-9 rounded-xl bg-[#0A1A3B] text-white flex items-center justify-center font-serif font-black text-base shadow-sm">
+              A
+            </div>
+          </Link>
         </div>
       )}
-
-      <div className="px-5 py-2.5 flex items-center justify-between">
-        {!collapsed ? (
-          <>
-            <div className="flex items-center min-w-0 pr-2">
-              <img
-                src="/logo.jpg"
-                alt="ARCA Corporation"
-                className="h-8 w-auto object-contain max-w-[140px]"
-              />
-            </div>
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                title="Colapsar menú"
-                className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
-              >
-                <PanelLeftClose className="w-4 h-4" />
-              </button>
-            )}
-          </>
-        ) : (
-          <div className="w-full flex justify-center">
-            {onToggleCollapse && (
-              <button
-                onClick={onToggleCollapse}
-                title="Expandir menú"
-                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                <PanelLeftOpen className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        )}
-      </div>
 
       <div className="px-4 py-3">
         {!collapsed ? (

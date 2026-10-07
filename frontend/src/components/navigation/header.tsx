@@ -45,7 +45,7 @@ export function Header({ collapsed = false, onToggleSidebar }: HeaderProps) {
 
         <div className="lg:hidden flex items-center gap-2.5 min-w-0">
           <div className="h-8 px-1.5 rounded-lg bg-white border border-slate-200 flex items-center justify-center shadow-2xs shrink-0">
-            <img src="/logo.jpg" alt="ARCA Corporation" className="h-5 w-auto object-contain" />
+            <img src="/logo.png" alt="ARCA Corporation" className="h-5 w-auto object-contain" />
           </div>
           <div className="min-w-0">
             <span className="font-extrabold text-sm text-slate-900 tracking-tight block truncate leading-tight">
