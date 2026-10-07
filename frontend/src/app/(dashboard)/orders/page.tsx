@@ -11,6 +11,10 @@ import {
   MapPin,
   UserCheck,
   X,
+  Eye,
+  Send,
+  User,
+  RotateCcw,
 } from 'lucide-react';
 import { orderService } from '@/features/orders/services/order-service';
 import { customerService } from '@/features/customers/services/customer-service';
@@ -19,6 +23,7 @@ import { Order, OrderStatus } from '@/features/orders/types/order';
 import { CreateOrderModal } from '@/features/orders/components/create-order-modal';
 import { AssignDriverModal } from '@/features/orders/components/assign-driver-modal';
 import { DeliverOrderModal } from '@/features/orders/components/deliver-order-modal';
+import { OrderDetailsModal } from '@/features/orders/components/order-details-modal';
 import { OrderCard } from '@/features/orders/components/order-card';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
@@ -47,19 +52,22 @@ export default function OrdersPage() {
   const toast = useToast();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'ALL'>('ALL');
+  const [driverFilter, setDriverFilter] = useState<string>('ALL');
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [orderToAssignDriver, setOrderToAssignDriver] = useState<Order | null>(null);
   const [orderToDeliver, setOrderToDeliver] = useState<Order | null>(null);
+  const [orderToViewDetails, setOrderToViewDetails] = useState<Order | null>(null);
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
   const [isCanceling, setIsCanceling] = useState(false);
 
   const { data: ordersData, isLoading, refetch } = useQuery({
-    queryKey: ['orders-list', { search, statusFilter }],
+    queryKey: ['orders-list', { search, statusFilter, driverFilter }],
     queryFn: () =>
       orderService.getOrders({
         search: search.trim() || undefined,
         status: statusFilter !== 'ALL' ? statusFilter : undefined,
+        driverId: driverFilter !== 'ALL' ? driverFilter : undefined,
         limit: 50,
       }),
   });
@@ -114,6 +122,20 @@ export default function OrdersPage() {
       toast.error('Error al cancelar pedido', err?.message || 'No se pudo cancelar');
     } finally {
       setIsCanceling(false);
+    }
+  };
+
+  const handleQuickStatusChange = async (order: Order, newStatus: OrderStatus) => {
+    try {
+      await orderService.updateStatus(order.id, newStatus);
+      const msg =
+        newStatus === 'EN_RUTA'
+          ? `Pedido ${order.orderNumber} despachado a ruta exitosamente.`
+          : `Estado de pedido ${order.orderNumber} actualizado a ${newStatus}.`;
+      toast.success('Estado actualizado', msg);
+      refreshAll();
+    } catch (err: any) {
+      toast.error('Error al actualizar estado', err?.message || 'No se pudo actualizar el pedido');
     }
   };
 
@@ -177,11 +199,29 @@ export default function OrdersPage() {
 
       {/* Buscador y Filtros */}
       <div className="shrink-0 card p-3 sm:p-3.5 space-y-2.5">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Buscar por correlativo (PED-2026-...), cliente, teléfono o dirección de entrega..."
-        />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="flex-1">
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por correlativo (PED-2026-...), cliente, teléfono o dirección..."
+            />
+          </div>
+          <div className="w-full sm:w-64 shrink-0">
+            <select
+              value={driverFilter}
+              onChange={(e) => setDriverFilter(e.target.value)}
+              className="w-full px-3 py-2 text-xs font-semibold bg-white border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition"
+            >
+              <option value="ALL">🚛 Todos los Repartidores</option>
+              {drivers.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.firstName} {d.lastName}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
 
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs font-semibold scrollbar-none pb-0.5">
           {[
@@ -216,7 +256,7 @@ export default function OrdersPage() {
           description={
             search
               ? `No hay pedidos que coincidan con "${search}".`
-              : 'No hay pedidos registrados con el estado seleccionado.'
+              : 'No hay pedidos registrados con los filtros seleccionados.'
           }
           action={
             <Button
@@ -239,9 +279,10 @@ export default function OrdersPage() {
                 order={order}
                 onAssignDriver={(o) => setOrderToAssignDriver(o)}
                 onDeliver={(o) => setOrderToDeliver(o)}
+                onViewDetails={(o) => setOrderToViewDetails(o)}
                 onUpdateStatus={(o, status) => {
                   if (status === 'CANCELADO') setOrderToCancel(o);
-                  else orderService.updateStatus(o.id, status).then(refreshAll);
+                  else handleQuickStatusChange(o, status);
                 }}
               />
             ))}
@@ -275,9 +316,14 @@ export default function OrdersPage() {
                     return (
                       <tr key={order.id} className="hover:bg-slate-50/70 transition-colors">
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <span className="font-mono font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                          <button
+                            type="button"
+                            onClick={() => setOrderToViewDetails(order)}
+                            className="font-mono font-bold text-slate-900 bg-slate-100 hover:bg-slate-200 px-2 py-0.5 rounded transition cursor-pointer"
+                            title="Ver detalles"
+                          >
                             {order.orderNumber}
-                          </span>
+                          </button>
                         </td>
                         <td className="px-4 py-3 min-w-[180px]">
                           <p className="font-bold text-slate-900 leading-tight">
@@ -321,10 +367,20 @@ export default function OrdersPage() {
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap">
                           <div className="flex items-center justify-center gap-1.5">
-                            {(order.status === 'PENDIENTE' ||
-                              order.status === 'CONFIRMADO' ||
-                              order.status === 'PREPARANDO') && (
+                            {/* Botón Ver Detalle */}
+                            <button
+                              type="button"
+                              onClick={() => setOrderToViewDetails(order)}
+                              title="Ver Detalle Completo"
+                              className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* Pendiente sin chofer */}
+                            {order.status === 'PENDIENTE' && !order.driver && (
                               <button
+                                type="button"
                                 onClick={() => setOrderToAssignDriver(order)}
                                 title="Asignar Repartidor"
                                 className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold rounded-lg transition shadow-2xs flex items-center gap-1"
@@ -333,8 +389,36 @@ export default function OrdersPage() {
                                 <span>Asignar</span>
                               </button>
                             )}
+
+                            {/* Confirmado / Preparando / Pendiente con chofer */}
+                            {(order.status === 'CONFIRMADO' ||
+                              order.status === 'PREPARANDO' ||
+                              (order.status === 'PENDIENTE' && order.driver)) && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleQuickStatusChange(order, 'EN_RUTA')}
+                                  title="Despachar a Ruta"
+                                  className="px-2.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold rounded-lg transition shadow-2xs flex items-center gap-1"
+                                >
+                                  <Send className="w-3.5 h-3.5" />
+                                  <span>Despachar</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setOrderToAssignDriver(order)}
+                                  title="Cambiar Chofer"
+                                  className="p-1.5 border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 rounded-lg transition"
+                                >
+                                  <User className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            )}
+
+                            {/* En Ruta */}
                             {order.status === 'EN_RUTA' && (
                               <button
+                                type="button"
                                 onClick={() => setOrderToDeliver(order)}
                                 title="Confirmar Entrega"
                                 className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition shadow-2xs flex items-center gap-1"
@@ -343,13 +427,16 @@ export default function OrdersPage() {
                                 <span>Entregar</span>
                               </button>
                             )}
-                            {order.status === 'PENDIENTE' && (
+
+                            {/* Cancelar si está pendiente o confirmado */}
+                            {(order.status === 'PENDIENTE' || order.status === 'CONFIRMADO') && (
                               <button
+                                type="button"
                                 onClick={() => setOrderToCancel(order)}
                                 title="Cancelar Pedido"
-                                className="px-2.5 py-1.5 border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 text-slate-600 text-[11px] font-bold rounded-lg transition shadow-2xs"
+                                className="p-1.5 border border-slate-200 bg-white hover:bg-rose-50 hover:text-rose-600 text-slate-400 rounded-lg transition"
                               >
-                                Cancelar
+                                <X className="w-3.5 h-3.5" />
                               </button>
                             )}
                           </div>
@@ -369,6 +456,14 @@ export default function OrdersPage() {
       )}
 
       {/* Modales */}
+      <OrderDetailsModal
+        order={orderToViewDetails}
+        isOpen={!!orderToViewDetails}
+        onClose={() => setOrderToViewDetails(null)}
+        onAssignDriver={(o) => setOrderToAssignDriver(o)}
+        onDeliver={(o) => setOrderToDeliver(o)}
+        onUpdateStatus={(o, st) => handleQuickStatusChange(o, st)}
+      />
       <CreateOrderModal
         customers={customers}
         products={products}
