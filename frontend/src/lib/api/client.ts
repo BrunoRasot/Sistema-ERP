@@ -91,10 +91,19 @@ export async function apiClient<T>(
   const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
   // ── Primera solicitud ────────────────────────────────────────────────────
-  let response = await fetch(url, {
-    ...options,
-    headers: buildHeaders(token),
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers: buildHeaders(token),
+    });
+  } catch (networkErr: any) {
+    throw new ApiError(
+      'No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet o intenta nuevamente en unos momentos.',
+      0,
+      'NETWORK_ERROR',
+    );
+  }
 
   // ── Si recibimos 401, intentar renovar el token y repetir ────────────────
   if (response.status === 401) {
@@ -102,10 +111,18 @@ export async function apiClient<T>(
 
     if (newToken) {
       // Repetir la solicitud con el token nuevo
-      response = await fetch(url, {
-        ...options,
-        headers: buildHeaders(newToken),
-      });
+      try {
+        response = await fetch(url, {
+          ...options,
+          headers: buildHeaders(newToken),
+        });
+      } catch {
+        throw new ApiError(
+          'Error de conexión al reintentar la solicitud.',
+          0,
+          'NETWORK_ERROR',
+        );
+      }
     } else {
       // No se pudo renovar → limpiar sesión y redirigir al login
       clearSession();

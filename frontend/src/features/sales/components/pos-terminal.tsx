@@ -246,9 +246,9 @@ export function PosTerminal({
       </head>
       <body>
         <div class="text-center">
-          <div class="bold" style="font-size: 15px;">VIVELITE</div>
-          <div>AGUA DE MESA PURIFICADA</div>
-          <div>Planta de Envasado & Reparto</div>
+          <div class="bold" style="font-size: 15px;">ARCA CORPORATION</div>
+          <div>SISTEMA INTEGRAL DE GESTIÓN & DISTRIBUCIÓN</div>
+          <div>Planta de Envasado & Distribución Ica</div>
         </div>
 
         <div class="divider"></div>
